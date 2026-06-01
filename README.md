@@ -114,7 +114,7 @@ cp .env.example .env
 docker compose up -d
 ```
 
-Console MinIO: http://localhost:9001  
+Console MinIO: http://localhost:9001
 Credenciais padrão: `minioadmin` / `minioadmin`
 
 ### Testes
@@ -125,9 +125,35 @@ pytest
 
 ### Qualidade de código
 
+Instalar os hooks (uma vez, com o venv ativo):
+
+```bash
+pre-commit install
+```
+
+Executar manualmente em todos os arquivos:
+
+```bash
+pre-commit run --all-files
+```
+
+Ferramentas individuais:
+
 ```bash
 ruff format .
 ruff check .
+```
+
+Validar mensagem de commit manualmente:
+
+```bash
+cz check --message "feat: add scraper module"
+```
+
+Criar commit interativo no padrão Conventional Commits:
+
+```bash
+cz commit
 ```
 
 ## Estrutura do projeto
