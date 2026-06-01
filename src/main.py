@@ -4,8 +4,9 @@ from pipeline.shared.logger import logger
 
 
 def main() -> None:
-    logger.info("Starting ingestion for %s", settings.scrape_url)
-    run_ingestion(settings.scrape_url)
+    url = settings.scrape_url
+    result = run_ingestion(url)
+    logger.info("Ingestion completed | result=%s", result.model_dump())
 
 
 if __name__ == "__main__":

@@ -219,3 +219,6 @@ __marimo__/
 
 # Specs
 specs/
+
+# Data local
+data/
