@@ -111,11 +111,11 @@ cp .env.example .env
 
 Principais variáveis para ingestão local:
 
-| Variável | Descrição | Padrão |
-|----------|-----------|--------|
-| `DATA_SOURCE_DIR` | Diretório raiz dos arquivos | `./prompts` |
-| `DATA_SOURCE_EXTENSIONS` | Extensões aceitas (vírgula) | `.txt,.md` |
-| `LOCAL_OUTPUT_DIR` | Saída local antes do MinIO | `data/local` |
+| Variável                 | Descrição                   | Padrão       |
+| ------------------------ | --------------------------- | ------------ |
+| `DATA_SOURCE_DIR`        | Diretório raiz dos arquivos | `./prompts`  |
+| `DATA_SOURCE_EXTENSIONS` | Extensões aceitas (vírgula) | `.txt,.md`   |
+| `LOCAL_OUTPUT_DIR`       | Saída local antes do MinIO  | `data/local` |
 
 ### Ingestão de arquivos locais
 
@@ -141,14 +141,56 @@ uv run python src/main.py
 
 Configure `SCRAPE_URL` no `.env` antes de executar.
 
-### Serviços (MinIO)
+### Serviços (MinIO, PostgreSQL, Qdrant)
 
 ```bash
 docker compose up -d
 ```
 
-Console MinIO: http://localhost:9001
-Credenciais padrão: `minioadmin` / `minioadmin`
+| Serviço       | URL                   | Credenciais                     |
+| ------------- | --------------------- | ------------------------------- |
+| MinIO API     | http://localhost:9000 | `minioadmin` / `minioadmin`     |
+| MinIO Console | http://localhost:9001 | `minioadmin` / `minioadmin`     |
+| PostgreSQL    | `localhost:5433`      | `orion` / `orion` (db: `orion`) |
+| Qdrant        | http://localhost:6333 | —                               |
+
+### Transformação (Fase 2)
+
+Após ingerir arquivos no Bronze, execute a transformação:
+
+```bash
+# Migração do banco (primeira vez) — opção A: via Python (recomendado no Windows)
+uv run python -m pipeline.transform.cli migrate
+# ou: bash scripts/migrate.sh
+
+# Opção B: via Docker (sem instalar psql no Windows)
+docker exec -i orion-genai-data-pipeline-postgres-1 psql -U orion -d orion < scripts/migrations/001_initial.sql
+
+# Processar todos os objetos Bronze
+uv run python -m pipeline.transform.cli run
+
+# Processar um objeto específico
+uv run python -m pipeline.transform.cli run --object-key source/2026/06/08/foo.md
+
+# Rastreabilidade por chunk_id
+uv run python -m pipeline.transform.cli trace <chunk-uuid>
+```
+
+Atalho:
+
+```bash
+uv run orion-transform run
+```
+
+Variáveis principais:
+
+| Variável          | Descrição                 | Padrão                                          |
+| ----------------- | ------------------------- | ----------------------------------------------- |
+| `CHUNK_SIZE`      | Tamanho máximo do chunk   | `1200`                                          |
+| `CHUNK_OVERLAP`   | Sobreposição entre chunks | `200`                                           |
+| `EMBEDDING_MODEL` | Modelo de embeddings      | `BAAI/bge-m3`                                   |
+| `POSTGRES_URL`    | Conexão PostgreSQL        | `postgresql://orion:orion@localhost:5432/orion` |
+| `QDRANT_URL`      | URL do Qdrant             | `http://localhost:6333`                         |
 
 ### Testes
 

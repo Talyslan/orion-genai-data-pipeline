@@ -10,15 +10,21 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "beautifulsoup4>=4.14.3",
+    "html2text>=2024.2.26",
     "lxml>=6.1.1",
     "minio>=7.2.20",
+    "psycopg[binary]>=3.2.0",
     "pydantic-settings>=2.14.1",
+    "qdrant-client>=1.13.0",
     "requests>=2.34.2",
+    "sentence-transformers>=3.4.0",
     "structlog>=25.5.0",
+    "torch>=2.6.0",
 ]
 
 [project.scripts]
 orion-ingest = "pipeline.ingestion.cli:main"
+orion-transform = "pipeline.transform.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/pipeline"]
@@ -38,6 +44,7 @@ pythonpath = ["src"]
 [tool.ruff]
 line-length = 88
 target-version = "py313"
+exclude = ["prompts", "data"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
