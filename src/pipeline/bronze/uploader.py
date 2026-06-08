@@ -35,22 +35,25 @@ class BronzeUploader:
         self,
         local_path: Path,
         uploaded_at: datetime | None = None,
+        file_stem: str | None = None,
     ) -> str:
         """Build the MinIO object key from the local file name and upload date."""
         timestamp = uploaded_at or datetime.now(UTC)
         date_prefix = timestamp.strftime("%Y/%m/%d")
-        return f"source/{date_prefix}/{local_path.stem}.md"
+        stem = file_stem or local_path.stem
+        return f"source/{date_prefix}/{stem}.md"
 
     def upload_file(
         self,
         local_path: Path,
         content_type: str = "text/markdown",
+        file_stem: str | None = None,
     ) -> str:
         """Upload a local file to MinIO Bronze and return the object key."""
         resolved_path = local_path.resolve()
         self.ensure_bucket()
 
-        object_key = self.build_object_key(resolved_path)
+        object_key = self.build_object_key(resolved_path, file_stem=file_stem)
         file_size = resolved_path.stat().st_size
 
         self._client.fput_object(
@@ -71,6 +74,14 @@ class BronzeUploader:
         return object_key
 
 
-def upload_file(local_path: Path, content_type: str = "text/markdown") -> str:
+def upload_file(
+    local_path: Path,
+    content_type: str = "text/markdown",
+    file_stem: str | None = None,
+) -> str:
     """Upload a local file using the default Bronze uploader."""
-    return BronzeUploader().upload_file(local_path, content_type=content_type)
+    return BronzeUploader().upload_file(
+        local_path,
+        content_type=content_type,
+        file_stem=file_stem,
+    )

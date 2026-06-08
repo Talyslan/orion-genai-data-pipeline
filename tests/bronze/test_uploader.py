@@ -5,6 +5,20 @@ from unittest.mock import Mock, patch
 from pipeline.bronze.uploader import BronzeUploader, upload_file
 
 
+def test_build_object_key_uses_custom_file_stem() -> None:
+    uploader = BronzeUploader(client=Mock())
+    local_path = Path("550e8400-e29b-41d4-a716-446655440000.md")
+    uploaded_at = datetime(2026, 6, 8, 12, 0, tzinfo=UTC)
+
+    object_key = uploader.build_object_key(
+        local_path,
+        uploaded_at,
+        file_stem="sample-prompt",
+    )
+
+    assert object_key == "source/2026/06/08/sample-prompt.md"
+
+
 def test_build_object_key_uses_utc_date_and_local_filename() -> None:
     uploader = BronzeUploader(client=Mock())
     local_path = Path("550e8400-e29b-41d4-a716-446655440000.md")
@@ -67,5 +81,6 @@ def test_module_upload_file_delegates_to_bronze_uploader(
     mock_instance.upload_file.assert_called_once_with(
         local_file,
         content_type="text/markdown",
+        file_stem=None,
     )
     assert result == "source/2026/06/01/file.md"

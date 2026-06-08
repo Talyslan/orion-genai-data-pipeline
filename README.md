@@ -6,26 +6,27 @@ Pipeline de Engenharia de Dados para IA Generativa. Coleta conteúdo via web scr
 
 Construir um pipeline reproduzível que:
 
-- Extrai dados de sites via web scraping
+- Ingere arquivos locais em lote ou via web scraping
 - Persiste arquivos brutos no MinIO (camada Bronze)
 - Limpa, segmenta e vetoriza o conteúdo (camada de transformação)
 - Armazena chunks em PostgreSQL e vetores em Qdrant (camada Ouro)
 - Mantém rastreabilidade entre fonte original, arquivo, chunk e vetor
 
-A fase atual foca no setup do ambiente e na primeira entrega: scraping → arquivo local → upload MinIO.
+A fase atual inclui ingestão local em lote (segunda entrega — Fase 1) e scraping por URL (primeira entrega).
 
 ## Arquitetura
 
 ```text
 ┌────────────────────┐
 │ Fonte de Dados     │
-│ (Website)          │
+│ (Arquivos locais   │
+│  ou Website)       │
 └─────────┬──────────┘
           │
           ▼
 ┌────────────────────┐
 │ Ingestion Layer    │
-│ Web Scraper        │
+│ Local / Scraper    │
 └─────────┬──────────┘
           │
           ▼
@@ -108,6 +109,38 @@ Copie o arquivo de exemplo e ajuste conforme necessário:
 cp .env.example .env
 ```
 
+Principais variáveis para ingestão local:
+
+| Variável | Descrição | Padrão |
+|----------|-----------|--------|
+| `DATA_SOURCE_DIR` | Diretório raiz dos arquivos | `./prompts` |
+| `DATA_SOURCE_EXTENSIONS` | Extensões aceitas (vírgula) | `.txt,.md` |
+| `LOCAL_OUTPUT_DIR` | Saída local antes do MinIO | `data/local` |
+
+### Ingestão de arquivos locais
+
+```bash
+# Clonar dados de referência
+git clone https://github.com/sandeco/prompts
+
+# Um arquivo
+bash scripts/coleta.sh ./prompts/caminho/para/arquivo.txt
+
+# Lote (shell)
+find ./prompts -type f -name "*.txt" -exec bash scripts/coleta.sh {} \;
+
+# Lote (Python)
+uv run python -m pipeline.ingestion.cli ingest-dir --dir ./prompts
+```
+
+### Ingestão por URL (legado — primeira entrega)
+
+```bash
+uv run python src/main.py
+```
+
+Configure `SCRAPE_URL` no `.env` antes de executar.
+
 ### Serviços (MinIO)
 
 ```bash
@@ -174,7 +207,18 @@ orion-genai-data-pipeline/
 ├── docs/
 ├── scripts/
 ├── docker/
+├── scripts/
+│   └── coleta.sh
 ├── .env.example
 ├── pyproject.toml
 └── docker-compose.yml
 ```
+
+## Documentação
+
+Especificações detalhadas em `specs/`:
+
+- [Setup e ambiente](specs/basis/README.md)
+- [Primeira entrega](specs/primeira-entrega/readme.md)
+- [Segunda entrega](specs/segunda-entrega/readme.md)
+- [Especificação técnica](specs/spec-tech.md)

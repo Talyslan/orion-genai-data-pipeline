@@ -33,9 +33,10 @@ def test_ingestion_pipeline_runs_full_flow(
     mock_save.assert_called_once_with(scraped_page, tmp_output_dir)
     mock_uploader.upload_file.assert_called_once_with(local_path)
     assert result.url == scraped_page.url
+    assert result.source_path == str(scraped_page.url)
     assert result.local_path == local_path
     assert result.minio_object_key == "source/2026/06/01/page.md"
-    assert result.scraped_at == scraped_page.scraped_at
+    assert result.ingested_at == scraped_page.scraped_at
 
 
 @patch("pipeline.ingestion.pipeline.save_scraped_page")

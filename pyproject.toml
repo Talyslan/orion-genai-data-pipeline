@@ -1,3 +1,7 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "orion-genai-data-pipeline"
 version = "0.1.0"
@@ -12,6 +16,12 @@ dependencies = [
     "requests>=2.34.2",
     "structlog>=25.5.0",
 ]
+
+[project.scripts]
+orion-ingest = "pipeline.ingestion.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pipeline"]
 
 [dependency-groups]
 dev = [

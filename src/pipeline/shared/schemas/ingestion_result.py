@@ -5,7 +5,8 @@ from pydantic import BaseModel, HttpUrl
 
 
 class IngestionResult(BaseModel):
-    url: HttpUrl
+    source_path: str
     local_path: Path
     minio_object_key: str
-    scraped_at: datetime
+    ingested_at: datetime
+    url: HttpUrl | None = None

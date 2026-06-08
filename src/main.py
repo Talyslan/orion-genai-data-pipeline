@@ -4,6 +4,7 @@ from pipeline.shared.logger import logger
 
 
 def main() -> None:
+    """Run legacy URL-based ingestion (primeira entrega)."""
     url = settings.scrape_url
     result = run_ingestion(url)
     logger.info("Ingestion completed | result=%s", result.model_dump())

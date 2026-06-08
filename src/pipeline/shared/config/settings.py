@@ -16,5 +16,15 @@ class Settings(BaseSettings):
     local_output_dir: str = "data/local"
     request_timeout_seconds: int = 30
 
+    # Fonte local (segunda entrega — Fase 1)
+    data_source_dir: str = "./prompts"
+    data_source_extensions: str = ".txt,.md"
+
+    @property
+    def extension_list(self) -> list[str]:
+        return [
+            ext.strip() for ext in self.data_source_extensions.split(",") if ext.strip()
+        ]
+
 
 settings = Settings()
