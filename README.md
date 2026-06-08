@@ -133,7 +133,7 @@ find ./prompts -type f -name "*.txt" -exec bash scripts/coleta.sh {} \;
 uv run python -m pipeline.ingestion.cli ingest-dir --dir ./prompts
 ```
 
-### Ingestão por URL (legado — primeira entrega)
+### Ingestão por URL (legado)
 
 ```bash
 uv run python src/main.py
@@ -154,7 +154,7 @@ docker compose up -d
 | PostgreSQL    | `localhost:5433`      | `orion` / `orion` (db: `orion`) |
 | Qdrant        | http://localhost:6333 | —                               |
 
-### Transformação (Fase 2)
+### Transformação
 
 Após ingerir arquivos no Bronze, execute a transformação:
 
