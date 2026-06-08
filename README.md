@@ -178,11 +178,3 @@ orion-genai-data-pipeline/
 ├── pyproject.toml
 └── docker-compose.yml
 ```
-
-## Documentação
-
-Especificações detalhadas em `specs/`:
-
-- [Setup e ambiente](specs/basis/README.md)
-- [Primeira entrega](specs/primeira-entrega/readme.md)
-- [Especificação técnica](specs/spec-tech.md)
