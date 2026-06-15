@@ -2,6 +2,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from unittest.mock import Mock, patch
 
+import fitz
+
 from pipeline.ingestion.cli import main
 from pipeline.shared.schemas.ingestion_result import IngestionResult
 
@@ -27,6 +29,36 @@ def test_cli_ingest_file_success(
     output = capsys.readouterr().out
     assert "Ingestion completed" in output
     assert "sample-prompt" in output
+
+
+@patch("pipeline.ingestion.cli.run_local_ingestion")
+def test_cli_ingest_file_success_for_pdf(
+    mock_run: Mock,
+    tmp_path: Path,
+    capsys,
+) -> None:
+    pdf_path = tmp_path / "whitepaper.pdf"
+    document = fitz.open()
+    document.new_page()
+    document.save(pdf_path)
+    document.close()
+
+    mock_run.return_value = IngestionResult(
+        source_path=str(pdf_path.resolve()),
+        local_path=tmp_path / "manifest.md",
+        minio_object_key="source/2026/06/15/whitepaper.pdf",
+        ingested_at=datetime(2026, 6, 15, 12, 0, tzinfo=UTC),
+        source_format="pdf",
+        page_count=1,
+    )
+
+    exit_code = main(["ingest-file", str(pdf_path)])
+
+    assert exit_code == 0
+    mock_run.assert_called_once_with(pdf_path)
+    output = capsys.readouterr().out
+    assert "Ingestion completed" in output
+    assert "whitepaper.pdf" in output
 
 
 def test_cli_ingest_file_missing_file(tmp_path: Path, capsys) -> None:

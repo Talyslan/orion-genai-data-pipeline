@@ -134,7 +134,8 @@ git clone https://github.com/sandeco/prompts
 bash scripts/coleta.sh ./prompts/caminho/para/arquivo.txt
 uv run python -m pipeline.ingestion.cli ingest-dir --dir ./prompts
 
-# PDF (terceira entrega)
+# PDF (terceira entrega — upload binário para Bronze)
+bash scripts/coleta.sh ./pdfs/wellarchitected-framework.pdf
 uv run python -m pipeline.ingestion.cli ingest-file ./pdfs/wellarchitected-framework.pdf
 uv run python -m pipeline.ingestion.cli ingest-dir --dir ./pdfs
 ```

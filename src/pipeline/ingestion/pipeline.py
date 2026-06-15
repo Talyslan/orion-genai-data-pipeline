@@ -91,7 +91,10 @@ class IngestionPipeline:
         """Read a local file, persist, and upload to MinIO Bronze."""
         if file_path.suffix.lower() == ".pdf":
             return self._run_local_pdf(file_path)
+        return self._run_local_text(file_path)
 
+    def _run_local_text(self, file_path: Path) -> IngestionResult:
+        """Ingest a text or Markdown file."""
         logger.info("Starting local ingestion for %s", file_path)
 
         doc = read_local_file(file_path)
