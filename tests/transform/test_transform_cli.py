@@ -70,12 +70,15 @@ def test_cli_trace_success(mock_trace: Mock, capsys) -> None:
         chunk_index=0,
         chunk_content="conteúdo de teste",
         document_id=uuid4(),
-        file_name="sample.txt",
-        source_path="/abs/sample.txt",
-        minio_object_key="source/2026/06/08/sample.md",
+        file_name="wellarchitected-framework.pdf",
+        source_format="pdf",
+        source_path="./pdfs/wellarchitected-framework.pdf",
+        minio_object_key="source/2026/06/08/wellarchitected-framework.pdf",
     )
 
     exit_code = main(["trace", str(chunk_id)])
 
     assert exit_code == 0
-    assert "Trace result" in capsys.readouterr().out
+    output = capsys.readouterr().out
+    assert "Trace result" in output
+    assert "source_format:     pdf" in output

@@ -121,6 +121,30 @@ Principais variáveis para ingestão local:
 
 Corpus PDF (AWS Whitepapers): coloque os arquivos em `./pdfs/`. Os binários `.pdf` estão no `.gitignore`; o manifesto e o README em `pdfs/` são versionados. Veja [pdfs/README.md](pdfs/README.md) para URLs e instruções de download.
 
+OCR (Tesseract): para PDFs escaneados, instale o Tesseract no SO ou use `uv sync --group ocr` e configure `TESSERACT_CMD` / `TESSDATA_PREFIX` no `.env` (ver task 02 em `specs/terceira-entrega/`).
+
+### Setup inicial (corpus PDF)
+
+```bash
+cp .env.example .env
+# Ajustar se necessário:
+# DATA_SOURCE_DIR=./pdfs
+# DATA_SOURCE_EXTENSIONS=.txt,.md,.pdf
+# PDF_EXTRACTION_MODE=structured
+# PDF_OCR_ENABLED=true
+
+uv sync
+# OCR opcional: uv sync --group ocr
+docker compose up -d
+uv run python -m pipeline.transform.cli migrate
+```
+
+Pipeline completo em um comando:
+
+```bash
+bash scripts/run-corpus-pdf.sh
+```
+
 ```bash
 # Verificar se o corpus mínimo está completo
 uv run python -m pipeline.ingestion.cli corpus-status
@@ -177,6 +201,47 @@ Embeddings com BGE-M3 em CPU podem levar **vários minutos** por documento exten
 
 Falhas parciais não abortam o lote: ingestão e transformação retornam código `1` se `failed > 0` e listam os arquivos/object keys com erro.
 
+### Verificação (Bronze e Ouro)
+
+**MinIO (Bronze)**
+
+1. Abrir http://localhost:9001
+2. Bucket `bronze` → prefixo `source/`
+3. Confirmar objetos `.pdf` com data do upload
+
+**PostgreSQL e Qdrant (Ouro)**
+
+```bash
+bash scripts/verify-ouro.sh
+```
+
+Ou manualmente:
+
+```bash
+docker exec -it orion-genai-data-pipeline-postgres-1 psql -U orion -d orion -c \
+  "SELECT file_name, minio_object_key FROM documents ORDER BY created_at DESC LIMIT 10;"
+
+curl -s http://localhost:6333/collections/document_embeddings | jq .
+```
+
+**Rastreabilidade** — a partir de um `chunk_id` retornado pela transformação ou consulta ao PostgreSQL:
+
+```bash
+uv run python -m pipeline.transform.cli trace <chunk-uuid>
+```
+
+A saída inclui `source_format`, `source_path` (PDF em `./pdfs/`) e `minio_object_key`.
+
+### Troubleshooting
+
+| Problema | Verificação |
+| -------- | ----------- |
+| PDF não ingerido | Extensão em `DATA_SOURCE_EXTENSIONS`? Arquivo existe em `DATA_SOURCE_DIR`? |
+| Texto vazio após extração | Ativar OCR (`PDF_OCR_ENABLED=true`); verificar Tesseract instalado |
+| Tabelas desordenadas | Usar `PDF_EXTRACTION_MODE=structured` |
+| OCR lento | Reduzir `PDF_OCR_DPI`; limitar `PDF_MAX_PAGES` em dev |
+| `TesseractNotFoundError` | Instalar Tesseract no SO ou configurar `TESSERACT_CMD` no `.env` |
+
 ### Ingestão por URL (legado — primeira entrega)
 
 ```bash
@@ -216,7 +281,7 @@ uv run python -m pipeline.transform.cli run
 # Processar um objeto específico
 uv run python -m pipeline.transform.cli run --object-key source/2026/06/08/foo.md
 
-# Rastreabilidade por chunk_id
+# Rastreabilidade por chunk_id (inclui source_format e caminho do PDF)
 uv run python -m pipeline.transform.cli trace <chunk-uuid>
 ```
 
@@ -233,13 +298,19 @@ Variáveis principais:
 | `CHUNK_SIZE`      | Tamanho máximo do chunk   | `1200`                                          |
 | `CHUNK_OVERLAP`   | Sobreposição entre chunks | `200`                                           |
 | `EMBEDDING_MODEL` | Modelo de embeddings      | `BAAI/bge-m3`                                   |
-| `POSTGRES_URL`    | Conexão PostgreSQL        | `postgresql://orion:orion@localhost:5432/orion` |
+| `POSTGRES_URL`    | Conexão PostgreSQL        | `postgresql://orion:orion@localhost:5433/orion` |
 | `QDRANT_URL`      | URL do Qdrant             | `http://localhost:6333`                         |
 
 ### Testes
 
 ```bash
 pytest
+```
+
+Testes de ingestão e transformação (PDF):
+
+```bash
+pytest tests/ingestion/ tests/transform/ -v
 ```
 
 ### Qualidade de código
@@ -291,10 +362,12 @@ orion-genai-data-pipeline/
 │       └── utils/
 ├── tests/
 ├── docs/
-├── scripts/
 ├── docker/
 ├── scripts/
-│   └── coleta.sh
+│   ├── coleta.sh
+│   ├── migrate.sh
+│   ├── run-corpus-pdf.sh
+│   └── verify-ouro.sh
 ├── .env.example
 ├── pyproject.toml
 └── docker-compose.yml

@@ -62,6 +62,7 @@ def _cmd_trace(args: argparse.Namespace) -> int:
     print(f"  chunk_index:       {result.chunk_index}")
     print(f"  document_id:       {result.document_id}")
     print(f"  file_name:         {result.file_name}")
+    print(f"  source_format:     {result.source_format or '-'}")
     print(f"  source_path:       {result.source_path}")
     print(f"  minio_object_key:  {result.minio_object_key}")
     print(f"  chunk_content:     {result.chunk_content[:120]}...")
