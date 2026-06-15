@@ -186,6 +186,7 @@ class TransformPipeline:
             except Exception as exc:
                 logger.exception("Failed to transform %s", key)
                 errors.append(BatchTransformError(object_key=key, error=str(exc)))
+                print(f"  -> failed: {exc}", flush=True)
 
         batch = BatchTransformResult(
             total=len(keys),

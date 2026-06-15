@@ -97,6 +97,9 @@ def _cmd_ingest_dir(args: argparse.Namespace) -> int:
         effective_extensions = extensions or settings.extension_list
         _print_no_files_hint(source_dir, effective_extensions)
 
+    for result in batch.results:
+        print(f"  OK: {result.source_path} (minio_key={result.minio_object_key})")
+
     for error in batch.errors:
         print(f"  FAILED: {error.source_path} — {error.error}", file=sys.stderr)
 

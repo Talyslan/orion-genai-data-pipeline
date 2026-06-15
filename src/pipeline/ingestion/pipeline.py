@@ -197,13 +197,20 @@ class IngestionPipeline:
         results: list[IngestionResult] = []
         errors: list[BatchIngestionError] = []
 
-        for file_path in files:
+        for index, file_path in enumerate(files, start=1):
+            print(f"[{index}/{len(files)}] Ingesting {file_path}...", flush=True)
             try:
-                results.append(self.run_local(file_path))
+                result = self.run_local(file_path)
+                results.append(result)
+                print(
+                    f"  -> done (minio_key={result.minio_object_key})",
+                    flush=True,
+                )
             except Exception as exc:
                 source = str(file_path.resolve())
                 logger.exception("Failed to ingest %s", source)
                 errors.append(BatchIngestionError(source_path=source, error=str(exc)))
+                print(f"  -> failed: {exc}", flush=True)
 
         batch = BatchIngestionResult(
             total_files=len(files),

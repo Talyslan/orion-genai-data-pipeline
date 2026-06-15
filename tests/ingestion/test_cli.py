@@ -76,6 +76,7 @@ def test_cli_ingest_dir_success(mock_ingest: Mock, capsys) -> None:
         total_files=2,
         succeeded=2,
         failed=0,
+        results=[],
         errors=[],
     )
 
@@ -83,3 +84,23 @@ def test_cli_ingest_dir_success(mock_ingest: Mock, capsys) -> None:
 
     assert exit_code == 0
     assert "Batch ingestion completed" in capsys.readouterr().out
+
+
+@patch("pipeline.ingestion.cli.ingest_directory")
+def test_cli_ingest_dir_returns_error_on_partial_failure(mock_ingest: Mock) -> None:
+    mock_ingest.return_value = Mock(
+        total_files=2,
+        succeeded=1,
+        failed=1,
+        results=[
+            Mock(
+                source_path="/data/pdfs/good.pdf",
+                minio_object_key="source/2026/06/15/good.pdf",
+            )
+        ],
+        errors=[Mock(source_path="/data/pdfs/bad.pdf", error="Unable to read PDF")],
+    )
+
+    exit_code = main(["ingest-dir", "--dir", "./pdfs"])
+
+    assert exit_code == 1

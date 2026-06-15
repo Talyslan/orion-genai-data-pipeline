@@ -138,7 +138,44 @@ uv run python -m pipeline.ingestion.cli ingest-dir --dir ./prompts
 bash scripts/coleta.sh ./pdfs/wellarchitected-framework.pdf
 uv run python -m pipeline.ingestion.cli ingest-file ./pdfs/wellarchitected-framework.pdf
 uv run python -m pipeline.ingestion.cli ingest-dir --dir ./pdfs
+
+# Alternativa shell (arquivo a arquivo)
+for file in ./pdfs/*.pdf; do
+  bash scripts/coleta.sh "$file"
+done
 ```
+
+### Processamento em lote — corpus PDF (6 whitepapers)
+
+Ordem recomendada para processar todo o corpus AWS em `./pdfs/`:
+
+```bash
+docker compose up -d
+uv run python -m pipeline.transform.cli migrate   # primeira execução
+uv run python -m pipeline.ingestion.cli corpus-status
+uv run python -m pipeline.ingestion.cli ingest-dir --dir ./pdfs
+uv run orion-transform run
+```
+
+A transformação processa todos os objetos sob `source/` no Bronze, incluindo `.pdf` ingeridos.
+
+| Arquivo | Páginas (aprox.) | Tema |
+| ------- | ---------------- | ---- |
+| `wellarchitected-framework.pdf` | ~80+ | Framework Well-Architected |
+| `wellarchitected-performance-efficiency-pillar.pdf` | ~50+ | Performance |
+| `wellarchitected-reliability-pillar.pdf` | ~50+ | Reliability |
+| `wellarchitected-security-pillar.pdf` | ~50+ | Security |
+| `wellarchitected-sustainability-pillar.pdf` | ~30+ | Sustainability |
+| `microservices-on-aws.pdf` | ~40+ | Microserviços |
+
+Embeddings com BGE-M3 em CPU podem levar **vários minutos** por documento extenso. A saída do transform mostra progresso:
+
+```text
+[1/6] Processing source/2026/06/15/wellarchitected-framework.pdf...
+  -> done (chunks=142, embeddings=142)
+```
+
+Falhas parciais não abortam o lote: ingestão e transformação retornam código `1` se `failed > 0` e listam os arquivos/object keys com erro.
 
 ### Ingestão por URL (legado — primeira entrega)
 

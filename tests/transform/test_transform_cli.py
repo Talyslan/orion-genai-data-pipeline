@@ -37,6 +37,31 @@ def test_cli_run_success(mock_run: Mock, capsys) -> None:
     assert "Transform completed" in capsys.readouterr().out
 
 
+@patch("pipeline.transform.cli.run_transform")
+def test_cli_run_returns_error_on_partial_failure(mock_run: Mock) -> None:
+    mock_run.return_value = Mock(
+        total=2,
+        processed=1,
+        skipped=0,
+        failed=1,
+        results=[
+            Mock(
+                skipped=False,
+                object_key="source/2026/06/15/good.pdf",
+                chunks_count=2,
+                embeddings_count=2,
+            )
+        ],
+        errors=[
+            Mock(object_key="source/2026/06/15/bad.pdf", error="extraction failed")
+        ],
+    )
+
+    exit_code = main(["run"])
+
+    assert exit_code == 1
+
+
 @patch("pipeline.transform.cli.trace_vector")
 def test_cli_trace_success(mock_trace: Mock, capsys) -> None:
     chunk_id = uuid4()
