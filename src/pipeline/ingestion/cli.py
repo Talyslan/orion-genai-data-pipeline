@@ -8,7 +8,47 @@ from pipeline.ingestion.pipeline import (
     ingest_directory,
     run_local_ingestion,
 )
+from pipeline.shared.config import settings
 from pipeline.shared.schemas.ingestion_result import IngestionResult
+
+
+def _parse_extensions(raw: str | None) -> list[str] | None:
+    if raw is None:
+        return None
+    return [ext.strip() for ext in raw.split(",") if ext.strip()]
+
+
+def _print_no_files_hint(source_dir: Path, extensions: list[str]) -> None:
+    from pipeline.ingestion.pipeline import _list_directory_files
+
+    _, all_files = _list_directory_files(source_dir.resolve(), extensions)
+    if not all_files:
+        print(
+            f"No files found in directory: {source_dir}",
+            file=sys.stderr,
+        )
+        return
+
+    skipped_suffixes = sorted({path.suffix for path in all_files if path.suffix})
+    print(
+        "No files matched the configured extensions.",
+        file=sys.stderr,
+    )
+    print(f"  directory: {source_dir.resolve()}", file=sys.stderr)
+    print(f"  extensions: {', '.join(extensions)}", file=sys.stderr)
+    print(
+        f"  files in directory: {len(all_files)} "
+        f"with suffix(es): {', '.join(skipped_suffixes) or '(none)'}",
+        file=sys.stderr,
+    )
+    if ".pdf" in skipped_suffixes and ".pdf" not in {
+        ext.lower() if ext.startswith(".") else f".{ext.lower()}" for ext in extensions
+    }:
+        print(
+            "  hint: add --extensions .pdf or set "
+            "DATA_SOURCE_EXTENSIONS=.txt,.md,.pdf in .env",
+            file=sys.stderr,
+        )
 
 
 def _print_result(result: IngestionResult) -> None:
@@ -35,10 +75,11 @@ def _cmd_ingest_file(args: argparse.Namespace) -> int:
 
 
 def _cmd_ingest_dir(args: argparse.Namespace) -> int:
-    source_dir = Path(args.dir) if args.dir else None
+    source_dir = Path(args.dir) if args.dir else Path(settings.data_source_dir)
+    extensions = _parse_extensions(args.extensions)
 
     try:
-        batch = ingest_directory(source_dir)
+        batch = ingest_directory(source_dir, extensions)
     except FileNotFoundError as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 2
@@ -50,6 +91,10 @@ def _cmd_ingest_dir(args: argparse.Namespace) -> int:
         f"Batch ingestion completed | total={batch.total_files} "
         f"succeeded={batch.succeeded} failed={batch.failed}"
     )
+
+    if batch.total_files == 0:
+        effective_extensions = extensions or settings.extension_list
+        _print_no_files_hint(source_dir, effective_extensions)
 
     for error in batch.errors:
         print(f"  FAILED: {error.source_path} — {error.error}", file=sys.stderr)
@@ -75,6 +120,10 @@ def build_parser() -> argparse.ArgumentParser:
     ingest_dir.add_argument(
         "--dir",
         help="Source directory (default: DATA_SOURCE_DIR from settings)",
+    )
+    ingest_dir.add_argument(
+        "--extensions",
+        help="Comma-separated extensions to ingest (default: DATA_SOURCE_EXTENSIONS)",
     )
     ingest_dir.set_defaults(func=_cmd_ingest_dir)
 

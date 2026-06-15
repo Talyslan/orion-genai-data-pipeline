@@ -29,6 +29,21 @@ def test_build_object_key_uses_utc_date_and_local_filename() -> None:
     assert object_key == "source/2026/06/01/550e8400-e29b-41d4-a716-446655440000.md"
 
 
+def test_build_object_key_uses_pdf_extension() -> None:
+    uploader = BronzeUploader(client=Mock())
+    local_path = Path("whitepaper.pdf")
+    uploaded_at = datetime(2026, 6, 15, 12, 0, tzinfo=UTC)
+
+    object_key = uploader.build_object_key(
+        local_path,
+        uploaded_at,
+        file_stem="wellarchitected-framework",
+        file_extension=".pdf",
+    )
+
+    assert object_key == "source/2026/06/15/wellarchitected-framework.pdf"
+
+
 def test_upload_file_calls_fput_object_and_stat_object(tmp_path: Path) -> None:
     mock_client = Mock()
     mock_client.bucket_exists.return_value = True
@@ -82,5 +97,30 @@ def test_module_upload_file_delegates_to_bronze_uploader(
         local_file,
         content_type="text/markdown",
         file_stem=None,
+        file_extension=None,
     )
     assert result == "source/2026/06/01/file.md"
+
+
+def test_upload_pdf_uses_application_pdf_content_type(tmp_path: Path) -> None:
+    mock_client = Mock()
+    mock_client.bucket_exists.return_value = True
+    uploader = BronzeUploader(client=mock_client)
+
+    local_file = tmp_path / "doc.pdf"
+    local_file.write_bytes(b"%PDF-1.4\n")
+
+    object_key = uploader.upload_file(
+        local_file,
+        content_type="application/pdf",
+        file_stem="doc",
+        file_extension=".pdf",
+    )
+
+    assert object_key.endswith("doc.pdf")
+    mock_client.fput_object.assert_called_once_with(
+        "bronze",
+        object_key,
+        str(local_file.resolve()),
+        content_type="application/pdf",
+    )

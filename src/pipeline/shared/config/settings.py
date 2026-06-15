@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -17,8 +19,26 @@ class Settings(BaseSettings):
     request_timeout_seconds: int = 30
 
     # Fonte local para ingestão de arquivos locais
-    data_source_dir: str = "./prompts"
-    data_source_extensions: str = ".txt,.md"
+    data_source_dir: str = "./pdfs"
+    data_source_extensions: str = ".txt,.md,.pdf"
+
+    # PDF — ingestão e extração (terceira entrega)
+    pdf_extractor: str = "pymupdf"
+    pdf_extraction_mode: str = "structured"
+    pdf_max_pages: int = 0
+    pdf_ocr_enabled: bool = True
+    pdf_ocr_min_chars: int = 50
+    pdf_ocr_lang: str = "eng+por"
+    pdf_ocr_dpi: int = 200
+    pdf_extract_tables: bool = True
+    pdf_figure_placeholder: bool = True
+    pdf_manifest_path: str = "./pdfs/manifest.yaml"
+    pdf_download_dir: str = "./pdfs"
+    pdf_download_skip_existing: bool = True
+
+    # OCR — Tesseract (Windows: .venv/share/tesseract via scripts/setup-tesseract.sh)
+    tesseract_cmd: str = ""
+    tessdata_prefix: str = ""
 
     # Transformação
     chunk_size: int = 1200
@@ -39,6 +59,30 @@ class Settings(BaseSettings):
         return [
             ext.strip() for ext in self.data_source_extensions.split(",") if ext.strip()
         ]
+
+    @property
+    def resolved_tesseract_cmd(self) -> str | None:
+        """Return Tesseract executable path (explicit env or local venv install)."""
+        if self.tesseract_cmd.strip():
+            return self.tesseract_cmd.strip()
+
+        local_exe = Path(".venv/share/tesseract/tesseract.exe")
+        if local_exe.is_file():
+            return str(local_exe.resolve())
+
+        return None
+
+    @property
+    def resolved_tessdata_prefix(self) -> str | None:
+        """Return tessdata directory for Tesseract."""
+        if self.tessdata_prefix.strip():
+            return self.tessdata_prefix.strip()
+
+        local_tessdata = Path(".venv/share/tesseract/tessdata")
+        if local_tessdata.is_dir():
+            return str(local_tessdata.resolve())
+
+        return None
 
 
 settings = Settings()

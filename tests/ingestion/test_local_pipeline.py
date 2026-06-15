@@ -91,6 +91,29 @@ def test_ingest_directory_processes_matching_files(
 
 
 @patch("pipeline.ingestion.pipeline.IngestionPipeline.run_local")
+def test_ingest_directory_matches_pdf_extension_case_insensitive(
+    mock_run_local: Mock,
+    tmp_path: Path,
+    tmp_output_dir: Path,
+) -> None:
+    source_dir = tmp_path / "pdfs"
+    source_dir.mkdir()
+    pdf_path = source_dir / "doc.PDF"
+    pdf_path.write_bytes(b"%PDF-1.4")
+
+    mock_run_local.return_value = _ingestion_result(
+        str(pdf_path.resolve()),
+        tmp_output_dir,
+    )
+
+    pipeline = IngestionPipeline(output_dir=tmp_output_dir, uploader=Mock())
+    batch = pipeline.ingest_directory(source_dir, extensions=[".pdf"])
+
+    assert batch.total_files == 1
+    mock_run_local.assert_called_once_with(pdf_path)
+
+
+@patch("pipeline.ingestion.pipeline.IngestionPipeline.run_local")
 def test_ingest_directory_continues_on_individual_failure(
     mock_run_local: Mock,
     tmp_path: Path,

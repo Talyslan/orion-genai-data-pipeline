@@ -10,3 +10,5 @@ class IngestionResult(BaseModel):
     minio_object_key: str
     ingested_at: datetime
     url: HttpUrl | None = None
+    source_format: str | None = None
+    page_count: int | None = None
