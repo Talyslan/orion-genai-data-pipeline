@@ -38,6 +38,7 @@ class Settings(BaseSettings):
     pdf_manifest_path: str = "./pdfs/manifest.yaml"
     pdf_download_dir: str = "./pdfs"
     pdf_download_skip_existing: bool = True
+    pdf_download_timeout_seconds: int = 120
 
     # OCR — Tesseract (Windows: .venv/share/tesseract via scripts/setup-tesseract.sh)
     tesseract_cmd: str = ""
@@ -53,7 +54,7 @@ class Settings(BaseSettings):
     embedding_batch_size: int = 32
 
     # Persistência Ouro
-    postgres_url: str = "postgresql://orion:orion@localhost:5432/orion"
+    postgres_url: str = "postgresql://orion:orion@localhost:5433/orion"
     qdrant_url: str = "http://localhost:6333"
     qdrant_collection: str = "document_embeddings"
 

@@ -6,6 +6,9 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 cd "$PROJECT_ROOT"
 
+echo "=== 0/5 Download corpus (optional) ==="
+uv run python -m pipeline.ingestion.cli download-corpus || true
+
 echo "=== 1/5 Docker services ==="
 docker compose up -d
 

@@ -148,6 +148,9 @@ bash scripts/run-corpus-pdf.sh
 ```bash
 # Verificar se o corpus mínimo está completo
 uv run python -m pipeline.ingestion.cli corpus-status
+
+# Baixar PDFs do manifesto (opcional)
+uv run python -m pipeline.ingestion.cli download-corpus
 ```
 
 ### Ingestão de arquivos locais
@@ -365,6 +368,7 @@ orion-genai-data-pipeline/
 ├── docker/
 ├── scripts/
 │   ├── coleta.sh
+│   ├── download-pdfs.sh
 │   ├── migrate.sh
 │   ├── run-corpus-pdf.sh
 │   └── verify-ouro.sh

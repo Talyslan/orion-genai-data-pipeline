@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 
 from pipeline.ingestion.corpus import check_corpus
+from pipeline.ingestion.corpus_download import download_corpus
 from pipeline.ingestion.pipeline import (
     ingest_directory,
     run_local_ingestion,
@@ -155,6 +156,48 @@ def _cmd_corpus_status(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_download_corpus(args: argparse.Namespace) -> int:
+    manifest_path = Path(args.manifest) if args.manifest else None
+    corpus_dir = Path(args.dir) if args.dir else None
+
+    try:
+        batch = download_corpus(
+            manifest_path,
+            corpus_dir,
+            skip_existing=not args.force,
+        )
+    except FileNotFoundError as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        return 2
+    except ValueError as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        return 2
+    except Exception as exc:
+        print(f"Error: download failed: {exc}", file=sys.stderr)
+        return 1
+
+    print(
+        f"Download completed | dir={batch.corpus_dir} "
+        f"downloaded={batch.downloaded} skipped={batch.skipped} "
+        f"failed={batch.failed} no_url={batch.no_url}"
+    )
+
+    for item in batch.results:
+        if item.status == "downloaded":
+            print(f"  DOWNLOADED: {item.document.filename}")
+        elif item.status == "skipped":
+            print(f"  SKIPPED: {item.document.filename} (unchanged)")
+        elif item.status == "no_url":
+            print(f"  NO_URL: {item.document.filename} — {item.error}")
+        else:
+            print(
+                f"  FAILED: {item.document.filename} — {item.error}",
+                file=sys.stderr,
+            )
+
+    return 1 if batch.failed else 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Orion ingestion CLI")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -193,6 +236,25 @@ def build_parser() -> argparse.ArgumentParser:
         help="Manifest path (default: PDF_MANIFEST_PATH)",
     )
     corpus_status.set_defaults(func=_cmd_corpus_status)
+
+    download_corpus_cmd = subparsers.add_parser(
+        "download-corpus",
+        help="Download PDFs listed in manifest.yaml",
+    )
+    download_corpus_cmd.add_argument(
+        "--dir",
+        help="Download directory (default: PDF_DOWNLOAD_DIR)",
+    )
+    download_corpus_cmd.add_argument(
+        "--manifest",
+        help="Manifest path (default: PDF_MANIFEST_PATH)",
+    )
+    download_corpus_cmd.add_argument(
+        "--force",
+        action="store_true",
+        help="Re-download even when local hash matches remote",
+    )
+    download_corpus_cmd.set_defaults(func=_cmd_download_corpus)
 
     return parser
 

@@ -30,13 +30,15 @@
 2. Use o link **Download PDF** oficial da AWS.
 3. Salve o arquivo nesta pasta com o nome indicado em **Arquivo**.
 
-### Automático (task 14)
+### Automático
 
 ```bash
 uv run python -m pipeline.ingestion.cli download-corpus
+# ou
+bash scripts/download-pdfs.sh
 ```
 
-Enquanto o download automático não estiver implementado, use o manifesto `manifest.yaml` como referência de URLs.
+Baixa entradas com URL em `manifest.yaml`, valida `%PDF` e ignora arquivos cujo hash SHA-256 já coincide com o remoto.
 
 ## Origem e URLs
 
