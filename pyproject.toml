@@ -15,6 +15,7 @@ dependencies = [
     "minio>=7.2.20",
     "psycopg[binary]>=3.2.0",
     "pymupdf>=1.25.0",
+    "pdfplumber>=0.11.0",
     "pydantic-settings>=2.14.1",
     "pyyaml>=6.0.2",
     "qdrant-client>=1.13.0",
@@ -45,7 +46,7 @@ ocr = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src"]
+pythonpath = ["src", "tests/transform"]
 
 [tool.ruff]
 line-length = 88
