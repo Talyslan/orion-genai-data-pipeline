@@ -1,0 +1,6 @@
+corpus: test
+documents:
+  - id: sample
+    title: Sample PDF
+    url: https://example.com/sample.pdf
+    filename: sample.pdf

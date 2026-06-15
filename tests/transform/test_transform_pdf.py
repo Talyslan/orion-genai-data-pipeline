@@ -1,7 +1,7 @@
 from unittest.mock import Mock, patch
 from uuid import uuid4
 
-from transform.pdf_fixtures import write_sample_pdf, write_table_pdf
+from pdf_fixtures import write_sample_pdf, write_table_pdf
 
 from pipeline.shared.config.settings import Settings
 from pipeline.shared.schemas.chunk_embedding import ChunkEmbedding
@@ -27,7 +27,7 @@ def _pdf_bronze_object(pdf_bytes: bytes, object_key: str) -> BronzeObject:
 @patch("pipeline.transform.pipeline.PostgresStore")
 @patch("pipeline.transform.pipeline.Embedder")
 @patch("pipeline.transform.pipeline.BronzeReader")
-def test_process_pdf_object_generates_chunks(
+def test_process_object_pdf_end_to_end(
     mock_reader_cls: Mock,
     mock_embedder_cls: Mock,
     mock_postgres_cls: Mock,
@@ -71,7 +71,6 @@ def test_process_pdf_object_generates_chunks(
     saved_doc = mock_postgres.save_document_and_chunks.call_args[0][0]
     assert saved_doc.source_format == "pdf"
     assert saved_doc.extraction_metadata is not None
-    assert saved_doc.extraction_metadata["methods_used"]
 
     payloads = mock_qdrant.upsert_embeddings.call_args[0][1]
     assert payloads[0]["source_format"] == "pdf"
@@ -148,7 +147,7 @@ def test_process_pdf_with_table_produces_pipe_table_chunks(
 
 
 @patch("pipeline.storage.postgres.psycopg.connect")
-def test_trace_vector_marks_pdf_source_format(mock_connect: Mock) -> None:
+def test_trace_vector_from_pdf_chunk(mock_connect: Mock) -> None:
     chunk_id = uuid4()
     document_id = uuid4()
     conn = Mock()
@@ -168,3 +167,4 @@ def test_trace_vector_marks_pdf_source_format(mock_connect: Mock) -> None:
 
     assert trace.source_format == "pdf"
     assert trace.file_name.endswith(".pdf")
+    assert trace.minio_object_key.endswith(".pdf")

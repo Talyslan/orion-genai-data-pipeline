@@ -31,7 +31,7 @@ def pdf_document(tmp_path: Path) -> tuple[PdfDocument, Path]:
 @patch("pipeline.ingestion.pipeline.save_pdf_document")
 @patch("pipeline.ingestion.pipeline.read_pdf_metadata")
 @patch("pipeline.ingestion.pipeline.validate_pdf")
-def test_run_local_pdf_uploads_original_to_bronze(
+def test_run_local_pdf_uploads_to_bronze(
     mock_validate: Mock,
     mock_read_metadata: Mock,
     mock_save_pdf: Mock,
@@ -94,3 +94,83 @@ def test_run_local_routes_txt_to_text_flow(
     mock_uploader.upload_file.assert_called_once()
     assert result.source_format is None
     assert result.page_count is None
+
+
+@patch("pipeline.ingestion.pipeline.IngestionPipeline.run_local")
+def test_ingest_directory_includes_pdfs(
+    mock_run_local: Mock,
+    tmp_path: Path,
+    tmp_output_dir: Path,
+) -> None:
+    from datetime import UTC, datetime
+
+    from pipeline.shared.schemas.ingestion_result import IngestionResult
+
+    source_dir = tmp_path / "pdfs"
+    source_dir.mkdir()
+    pdf_a = source_dir / "a.pdf"
+    pdf_b = source_dir / "b.pdf"
+    pdf_a.write_bytes(b"%PDF-1.4\n")
+    pdf_b.write_bytes(b"%PDF-1.4\n")
+
+    mock_run_local.side_effect = [
+        IngestionResult(
+            source_path=str(pdf_a.resolve()),
+            local_path=tmp_output_dir / "a.md",
+            minio_object_key="source/2026/06/15/a.pdf",
+            ingested_at=datetime(2026, 6, 15, 12, 0, tzinfo=UTC),
+            source_format="pdf",
+            page_count=1,
+        ),
+        IngestionResult(
+            source_path=str(pdf_b.resolve()),
+            local_path=tmp_output_dir / "b.md",
+            minio_object_key="source/2026/06/15/b.pdf",
+            ingested_at=datetime(2026, 6, 15, 12, 0, tzinfo=UTC),
+            source_format="pdf",
+            page_count=1,
+        ),
+    ]
+
+    pipeline = IngestionPipeline(output_dir=tmp_output_dir, uploader=Mock())
+    batch = pipeline.ingest_directory(source_dir, extensions=[".pdf"])
+
+    assert batch.total_files == 2
+    assert batch.succeeded == 2
+    assert mock_run_local.call_count == 2
+
+
+@patch("pipeline.ingestion.pipeline.IngestionPipeline.run_local")
+def test_ingest_directory_skips_invalid_pdf(
+    mock_run_local: Mock,
+    tmp_path: Path,
+    tmp_output_dir: Path,
+) -> None:
+    from datetime import UTC, datetime
+
+    from pipeline.shared.schemas.ingestion_result import IngestionResult
+
+    source_dir = tmp_path / "pdfs"
+    source_dir.mkdir()
+    good = source_dir / "good.pdf"
+    bad = source_dir / "bad.pdf"
+    good.write_bytes(b"%PDF-1.4\n")
+    bad.write_bytes(b"%PDF-1.4\nbroken")
+
+    mock_run_local.side_effect = [
+        IngestionResult(
+            source_path=str(good.resolve()),
+            local_path=tmp_output_dir / "good.md",
+            minio_object_key="source/2026/06/15/good.pdf",
+            ingested_at=datetime(2026, 6, 15, 12, 0, tzinfo=UTC),
+            source_format="pdf",
+        ),
+        ValueError("Unable to read PDF (corrupt or invalid)"),
+    ]
+
+    pipeline = IngestionPipeline(output_dir=tmp_output_dir, uploader=Mock())
+    batch = pipeline.ingest_directory(source_dir, extensions=[".pdf"])
+
+    assert batch.total_files == 2
+    assert batch.succeeded == 1
+    assert batch.failed == 1

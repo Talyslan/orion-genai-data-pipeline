@@ -65,6 +65,34 @@ def test_run_local_ingests_file_and_uploads(
 
 
 @patch("pipeline.ingestion.pipeline.IngestionPipeline.run_local")
+def test_ingest_directory_includes_pdfs_when_extension_configured(
+    mock_run_local: Mock,
+    tmp_path: Path,
+    tmp_output_dir: Path,
+) -> None:
+    source_dir = tmp_path / "corpus"
+    source_dir.mkdir()
+    pdf_path = source_dir / "whitepaper.pdf"
+    pdf_path.write_bytes(b"%PDF-1.4\n")
+    (source_dir / "notes.txt").write_text("skip me", encoding="utf-8")
+
+    mock_run_local.return_value = _ingestion_result(
+        str(pdf_path.resolve()),
+        tmp_output_dir,
+    )
+
+    pipeline = IngestionPipeline(output_dir=tmp_output_dir, uploader=Mock())
+    batch = pipeline.ingest_directory(
+        source_dir,
+        extensions=[".txt", ".pdf"],
+    )
+
+    assert batch.total_files == 2
+    assert batch.succeeded == 2
+    assert mock_run_local.call_count == 2
+
+
+@patch("pipeline.ingestion.pipeline.IngestionPipeline.run_local")
 def test_ingest_directory_processes_matching_files(
     mock_run_local: Mock,
     tmp_path: Path,

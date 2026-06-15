@@ -60,6 +60,12 @@ def test_validate_pdf_rejects_password_protected_pdf(tmp_path: Path) -> None:
         validate_pdf(pdf_path)
 
 
+def test_read_pdf_metadata_returns_page_count(sample_pdf: Path) -> None:
+    doc = read_pdf_metadata(sample_pdf)
+
+    assert doc.page_count == 1
+
+
 def test_read_pdf_metadata_returns_page_count_and_fields(sample_pdf: Path) -> None:
     doc = read_pdf_metadata(sample_pdf)
 

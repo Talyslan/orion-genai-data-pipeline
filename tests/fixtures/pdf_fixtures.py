@@ -1,4 +1,4 @@
-"""Build PDF fixtures for transform extraction tests."""
+"""Build PDF fixtures for ingestion and transform tests."""
 
 from __future__ import annotations
 
@@ -39,7 +39,7 @@ def write_table_pdf(path: Path) -> Path:
     return path
 
 
-def write_scanned_pdf(path: Path, text: str = "Scanned OCR text") -> Path:
+def write_scanned_pdf(path: Path, text: str = "Scanned OCR text for fallback") -> Path:
     document = fitz.open()
     page = document.new_page()
     image = Image.new("RGB", (400, 100), "white")
@@ -59,8 +59,13 @@ def ensure_pdf_fixtures(fixtures_dir: Path) -> dict[str, Path]:
         "sample": fixtures_dir / "sample.pdf",
         "table": fixtures_dir / "sample-table.pdf",
         "scanned": fixtures_dir / "sample-scanned.pdf",
+        "bronze": fixtures_dir / "sample-bronze.pdf",
     }
     write_sample_pdf(paths["sample"])
     write_table_pdf(paths["table"])
     write_scanned_pdf(paths["scanned"])
+    write_sample_pdf(
+        paths["bronze"],
+        text="Bronze PDF fixture for transform tests",
+    )
     return paths

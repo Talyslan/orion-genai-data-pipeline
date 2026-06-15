@@ -46,7 +46,11 @@ ocr = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src", "tests/transform"]
+pythonpath = ["src", "tests/fixtures"]
+
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]
 
 [tool.ruff]
 line-length = 88

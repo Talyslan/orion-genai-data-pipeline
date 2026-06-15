@@ -10,6 +10,7 @@ def test_cli_ingest_dir_passes_extensions(mock_ingest: Mock) -> None:
         total_files=1,
         succeeded=1,
         failed=0,
+        results=[],
         errors=[],
     )
 
@@ -33,6 +34,7 @@ def test_cli_ingest_dir_prints_hint_when_no_files_match(
         total_files=0,
         succeeded=0,
         failed=0,
+        results=[],
         errors=[],
     )
 

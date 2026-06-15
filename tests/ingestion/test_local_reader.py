@@ -26,6 +26,14 @@ def test_read_local_file_raises_for_missing_file(tmp_path: Path) -> None:
         read_local_file(missing)
 
 
+def test_read_local_file_rejects_pdf_files(tmp_path: Path) -> None:
+    pdf_file = tmp_path / "document.pdf"
+    pdf_file.write_bytes(b"%PDF-1.4\ncontent")
+
+    with pytest.raises(ValueError, match="PDF files must use the PDF ingestion path"):
+        read_local_file(pdf_file)
+
+
 def test_read_local_file_handles_empty_file(tmp_path: Path) -> None:
     empty_file = tmp_path / "empty.txt"
     empty_file.write_text("", encoding="utf-8")

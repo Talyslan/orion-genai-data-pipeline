@@ -28,6 +28,10 @@ def read_local_file(file_path: Path) -> LocalDocument:
         msg = f"File not found: {resolved}"
         raise FileNotFoundError(msg)
 
+    if resolved.suffix.lower() == ".pdf":
+        msg = f"PDF files must use the PDF ingestion path: {resolved}"
+        raise ValueError(msg)
+
     logger.info(
         "Reading local file",
         extra={"service": SERVICE, "source_path": str(resolved)},
