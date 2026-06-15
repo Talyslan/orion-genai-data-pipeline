@@ -5,6 +5,7 @@ import logging
 from pathlib import Path
 from uuid import UUID
 
+from pipeline.shared.config import settings
 from pipeline.shared.schemas.processed_document import ProcessedDocument
 from pipeline.shared.schemas.trace_result import TraceResult
 from pipeline.shared.schemas.transform_result import (
@@ -18,6 +19,8 @@ from pipeline.transform.bronze_reader import BronzeObject, BronzeReader
 from pipeline.transform.chunker import chunk_text
 from pipeline.transform.cleaner import clean_content
 from pipeline.transform.embedder import Embedder
+from pipeline.transform.pdf_extractor import extract_pdf_content
+from pipeline.transform.pdf_post_clean import post_clean_pdf_text
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +48,40 @@ class TransformPipeline:
     def _content_hash(self, cleaned: str) -> str:
         return hashlib.sha256(cleaned.encode("utf-8")).hexdigest()
 
+    def _extract_raw_text(self, bronze_obj: BronzeObject) -> tuple[str, dict | None]:
+        if not bronze_obj.is_pdf:
+            return bronze_obj.body, None
+
+        if bronze_obj.raw_bytes is None:
+            msg = f"PDF object missing binary body: {bronze_obj.object_key}"
+            raise ValueError(msg)
+
+        file_name = bronze_obj.file_name or Path(bronze_obj.object_key).name
+        extracted = extract_pdf_content(
+            bronze_obj.raw_bytes,
+            mode=settings.pdf_extraction_mode,
+            max_pages=settings.pdf_max_pages,
+            file_name=file_name,
+        )
+        logger.info(
+            "PDF extracted",
+            extra={
+                "object_key": bronze_obj.object_key,
+                "tables_count": extracted.tables_count,
+                "pages_ocr": extracted.pages_ocr,
+                "methods_used": extracted.methods_used,
+            },
+        )
+        metadata = {
+            "source_format": "pdf",
+            "extraction_mode": settings.pdf_extraction_mode,
+            "tables_count": extracted.tables_count,
+            "pages_ocr": extracted.pages_ocr,
+            "figures_count": extracted.figures_count,
+            "methods_used": extracted.methods_used,
+        }
+        return post_clean_pdf_text(extracted.markdown), metadata
+
     def process_object(self, object_key: str) -> TransformResult:
         """Transform a single Bronze object."""
         logger.info("Starting transformation for %s", object_key)
@@ -52,7 +89,8 @@ class TransformPipeline:
         self._postgres.ensure_schema()
 
         bronze_obj = self._reader.fetch_object(object_key)
-        cleaned = clean_content(bronze_obj.body)
+        raw_text, extraction_metadata = self._extract_raw_text(bronze_obj)
+        cleaned = clean_content(raw_text)
         file_hash = self._content_hash(cleaned)
 
         existing_id = self._postgres.get_document_id_by_hash(file_hash)
@@ -69,12 +107,17 @@ class TransformPipeline:
             )
 
         source_path, file_name = self._resolve_metadata(bronze_obj)
+        source_format = (
+            extraction_metadata.get("source_format") if extraction_metadata else None
+        )
         document = ProcessedDocument(
             source_path=source_path,
             file_name=file_name,
             file_hash=file_hash,
             minio_object_key=object_key,
             cleaned_content=cleaned,
+            source_format=source_format,
+            extraction_metadata=extraction_metadata,
         )
 
         chunks = chunk_text(cleaned, document.id)
@@ -90,6 +133,8 @@ class TransformPipeline:
                 "source_path": source_path,
                 "file_name": file_name,
                 "minio_object_key": object_key,
+                "source_format": source_format,
+                "extraction_metadata": extraction_metadata,
             }
             for chunk in chunks
             if chunk.content.strip()

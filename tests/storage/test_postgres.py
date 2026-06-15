@@ -50,6 +50,7 @@ def test_trace_vector_returns_chain(mock_connect: Mock) -> None:
     assert trace.chunk_id == chunk_id
     assert trace.document_id == document_id
     assert trace.source_path == "/abs/sample.txt"
+    assert trace.source_format is None
 
 
 @patch("pipeline.storage.postgres.psycopg.connect")

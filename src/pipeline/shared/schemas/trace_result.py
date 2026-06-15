@@ -11,3 +11,4 @@ class TraceResult(BaseModel):
     file_name: str
     source_path: str
     minio_object_key: str
+    source_format: str | None = None

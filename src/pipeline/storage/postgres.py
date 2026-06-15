@@ -197,6 +197,7 @@ class PostgresStore:
             file_name=row[4],
             source_path=row[5],
             minio_object_key=row[6],
+            source_format="pdf" if str(row[4]).lower().endswith(".pdf") else None,
         )
 
 
