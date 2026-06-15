@@ -4,6 +4,7 @@ import argparse
 import sys
 from pathlib import Path
 
+from pipeline.ingestion.corpus import check_corpus
 from pipeline.ingestion.pipeline import (
     ingest_directory,
     run_local_ingestion,
@@ -102,6 +103,55 @@ def _cmd_ingest_dir(args: argparse.Namespace) -> int:
     return 1 if batch.failed else 0
 
 
+def _cmd_corpus_status(args: argparse.Namespace) -> int:
+    manifest_path = Path(args.manifest) if args.manifest else None
+    corpus_dir = Path(args.dir) if args.dir else None
+
+    try:
+        status = check_corpus(manifest_path, corpus_dir)
+    except FileNotFoundError as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        return 2
+    except Exception as exc:
+        print(f"Error: corpus check failed: {exc}", file=sys.stderr)
+        return 1
+
+    required = len(status.required_documents)
+    missing = len(status.missing_required)
+
+    print(f"Corpus status | dir={status.corpus_dir}")
+    print(f"  manifest: {status.manifest_path}")
+    print(
+        f"  files: {status.valid_count}/{len(status.files)} valid "
+        f"({status.present_count} present)"
+    )
+    print(f"  required ready: {required - missing}/{required}")
+
+    for item in status.files:
+        if item.valid_pdf:
+            label = "OK"
+        elif item.present:
+            label = "INVALID"
+        elif item.document.optional:
+            label = "OPTIONAL"
+        else:
+            label = "MISSING"
+
+        suffix = f" — {item.error}" if item.error else ""
+        optional = " (optional)" if item.document.optional else ""
+        print(f"  [{label}] {item.document.filename}{optional}{suffix}")
+
+    if not status.is_ready:
+        print(
+            "Corpus incomplete — download missing PDFs (see pdfs/README.md)",
+            file=sys.stderr,
+        )
+        return 1
+
+    print("Corpus ready for ingestion.")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Orion ingestion CLI")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -126,6 +176,20 @@ def build_parser() -> argparse.ArgumentParser:
         help="Comma-separated extensions to ingest (default: DATA_SOURCE_EXTENSIONS)",
     )
     ingest_dir.set_defaults(func=_cmd_ingest_dir)
+
+    corpus_status = subparsers.add_parser(
+        "corpus-status",
+        help="Verify local PDF corpus against manifest.yaml",
+    )
+    corpus_status.add_argument(
+        "--dir",
+        help="Corpus directory (default: PDF_DOWNLOAD_DIR / DATA_SOURCE_DIR)",
+    )
+    corpus_status.add_argument(
+        "--manifest",
+        help="Manifest path (default: PDF_MANIFEST_PATH)",
+    )
+    corpus_status.set_defaults(func=_cmd_corpus_status)
 
     return parser
 

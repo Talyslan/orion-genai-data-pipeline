@@ -223,4 +223,6 @@ specs/
 # Data local
 data/
 prompts/
-pdfs/
+# Corpus PDF — versionar manifesto e README; ignorar binários
+pdfs/*.pdf
+pdfs/.cache/

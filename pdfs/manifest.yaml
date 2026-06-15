@@ -1,0 +1,56 @@
+# Corpus AWS Well-Architected — URLs diretas validadas em 2026-06-15
+# Uso: uv run python -m pipeline.ingestion.cli corpus-status
+# Download automático: task 14 (download-corpus)
+corpus: aws-well-architected
+theme: performance-frontend-web-architecture
+updated: 2026-06-15
+documents:
+  - id: wellarchitected-framework
+    title: AWS Well-Architected Framework
+    url: https://docs.aws.amazon.com/pdfs/wellarchitected/latest/framework/wellarchitected-framework.pdf
+    filename: wellarchitected-framework.pdf
+    doc_page: https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html
+
+  - id: performance-efficiency-pillar
+    title: Performance Efficiency Pillar
+    url: https://docs.aws.amazon.com/pdfs/wellarchitected/latest/performance-efficiency-pillar/wellarchitected-performance-efficiency-pillar.pdf
+    filename: wellarchitected-performance-efficiency-pillar.pdf
+    doc_page: https://docs.aws.amazon.com/wellarchitected/latest/performance-efficiency-pillar/welcome.html
+
+  - id: reliability-pillar
+    title: Reliability Pillar
+    url: https://docs.aws.amazon.com/pdfs/wellarchitected/latest/reliability-pillar/wellarchitected-reliability-pillar.pdf
+    filename: wellarchitected-reliability-pillar.pdf
+    doc_page: https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/welcome.html
+
+  - id: security-pillar
+    title: Security Pillar
+    url: https://docs.aws.amazon.com/pdfs/wellarchitected/latest/security-pillar/wellarchitected-security-pillar.pdf
+    filename: wellarchitected-security-pillar.pdf
+    doc_page: https://docs.aws.amazon.com/wellarchitected/latest/security-pillar/welcome.html
+
+  - id: sustainability-pillar
+    title: Sustainability Pillar
+    url: https://docs.aws.amazon.com/pdfs/wellarchitected/latest/sustainability-pillar/wellarchitected-sustainability-pillar.pdf
+    filename: wellarchitected-sustainability-pillar.pdf
+    doc_page: https://docs.aws.amazon.com/wellarchitected/latest/sustainability-pillar/welcome.html
+
+  - id: microservices-on-aws
+    title: Microservices on AWS
+    url: https://docs.aws.amazon.com/pdfs/whitepapers/latest/microservices-on-aws/microservices-on-aws.pdf
+    filename: microservices-on-aws.pdf
+    doc_page: https://docs.aws.amazon.com/whitepapers/latest/microservices-on-aws/microservices-on-aws.html
+
+  - id: serverless-architectures-lambda
+    title: Serverless Architectures with AWS Lambda
+    url: https://docs.aws.amazon.com/pdfs/whitepapers/latest/serverless-architectures-lambda/serverless-architectures-lambda.pdf
+    filename: serverless-architectures-lambda.pdf
+    doc_page: https://docs.aws.amazon.com/whitepapers/latest/serverless-architectures-lambda/welcome.html
+    optional: true
+
+  - id: architecting-for-the-cloud
+    title: Architecting for the Cloud
+    filename: architecting-for-the-cloud.pdf
+    doc_page: https://docs.aws.amazon.com/whitepapers/latest/aws-overview/aws-overview.html
+    optional: true
+    notes: Baixar manualmente via link Download PDF na página de documentação

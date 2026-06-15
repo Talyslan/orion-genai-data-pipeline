@@ -119,7 +119,12 @@ Principais variáveis para ingestão local:
 | `PDF_EXTRACTION_MODE`    | Modo de extração na transformação | `structured`  |
 | `PDF_OCR_ENABLED`        | OCR para páginas escaneadas | `true`              |
 
-Corpus PDF (AWS Whitepapers): coloque os arquivos em `./pdfs/`. A pasta está no `.gitignore` — baixe os whitepapers manualmente ou use o manifesto (task 14). Veja `specs/terceira-entrega/` para a lista recomendada.
+Corpus PDF (AWS Whitepapers): coloque os arquivos em `./pdfs/`. Os binários `.pdf` estão no `.gitignore`; o manifesto e o README em `pdfs/` são versionados. Veja [pdfs/README.md](pdfs/README.md) para URLs e instruções de download.
+
+```bash
+# Verificar se o corpus mínimo está completo
+uv run python -m pipeline.ingestion.cli corpus-status
+```
 
 ### Ingestão de arquivos locais
 
