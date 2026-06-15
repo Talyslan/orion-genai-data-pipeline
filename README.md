@@ -12,7 +12,7 @@ Construir um pipeline reproduzível que:
 - Armazena chunks em PostgreSQL e vetores em Qdrant (camada Ouro)
 - Mantém rastreabilidade entre fonte original, arquivo, chunk e vetor
 
-A fase atual inclui ingestão local em lote (segunda entrega — Fase 1) e scraping por URL (primeira entrega).
+A fase atual inclui ingestão de PDF e arquivos locais em lote (terceira entrega — Fase 1), transformação para PostgreSQL/Qdrant (segunda entrega — Fase 2) e scraping por URL (primeira entrega).
 
 ## Arquitetura
 
@@ -111,26 +111,27 @@ cp .env.example .env
 
 Principais variáveis para ingestão local:
 
-| Variável                 | Descrição                   | Padrão       |
-| ------------------------ | --------------------------- | ------------ |
-| `DATA_SOURCE_DIR`        | Diretório raiz dos arquivos | `./prompts`  |
-| `DATA_SOURCE_EXTENSIONS` | Extensões aceitas (vírgula) | `.txt,.md`   |
-| `LOCAL_OUTPUT_DIR`       | Saída local antes do MinIO  | `data/local` |
+| Variável                 | Descrição                   | Padrão              |
+| ------------------------ | --------------------------- | ------------------- |
+| `DATA_SOURCE_DIR`        | Diretório raiz dos arquivos | `./pdfs`            |
+| `DATA_SOURCE_EXTENSIONS` | Extensões aceitas (vírgula) | `.txt,.md,.pdf`     |
+| `LOCAL_OUTPUT_DIR`       | Saída local antes do MinIO  | `data/local`        |
+| `PDF_EXTRACTION_MODE`    | Modo de extração na transformação | `structured`  |
+| `PDF_OCR_ENABLED`        | OCR para páginas escaneadas | `true`              |
+
+Corpus PDF (AWS Whitepapers): coloque os arquivos em `./pdfs/`. A pasta está no `.gitignore` — baixe os whitepapers manualmente ou use o manifesto (task 14). Veja `specs/terceira-entrega/` para a lista recomendada.
 
 ### Ingestão de arquivos locais
 
 ```bash
-# Clonar dados de referência
+# Texto / Markdown (segunda entrega)
 git clone https://github.com/sandeco/prompts
-
-# Um arquivo
 bash scripts/coleta.sh ./prompts/caminho/para/arquivo.txt
-
-# Lote (shell)
-find ./prompts -type f -name "*.txt" -exec bash scripts/coleta.sh {} \;
-
-# Lote (Python)
 uv run python -m pipeline.ingestion.cli ingest-dir --dir ./prompts
+
+# PDF (terceira entrega)
+uv run python -m pipeline.ingestion.cli ingest-file ./pdfs/wellarchitected-framework.pdf
+uv run python -m pipeline.ingestion.cli ingest-dir --dir ./pdfs
 ```
 
 ### Ingestão por URL (legado — primeira entrega)

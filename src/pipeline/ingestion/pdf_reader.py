@@ -29,11 +29,16 @@ def validate_pdf(file_path: Path) -> None:
 
     try:
         with fitz.open(resolved) as document:
+            if document.is_encrypted and document.needs_pass:
+                msg = f"PDF is password-protected: {resolved}"
+                raise ValueError(msg)
             if document.page_count < 1:
                 msg = f"PDF has no pages: {resolved}"
                 raise ValueError(msg)
+            # Minimal read — load first page to catch truncated/corrupt files.
+            document.load_page(0)
     except fitz.FileDataError as exc:
-        msg = f"Unable to read PDF: {resolved}"
+        msg = f"Unable to read PDF (corrupt or invalid): {resolved}"
         raise ValueError(msg) from exc
 
 

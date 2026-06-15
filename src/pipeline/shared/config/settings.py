@@ -1,6 +1,9 @@
 from pathlib import Path
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+PDF_EXTRACTION_MODES = frozenset({"native", "structured", "unstructured"})
 
 
 class Settings(BaseSettings):
@@ -53,6 +56,32 @@ class Settings(BaseSettings):
     postgres_url: str = "postgresql://orion:orion@localhost:5432/orion"
     qdrant_url: str = "http://localhost:6333"
     qdrant_collection: str = "document_embeddings"
+
+    @field_validator("pdf_extraction_mode")
+    @classmethod
+    def validate_pdf_extraction_mode(cls, value: str) -> str:
+        normalized = value.strip().lower()
+        if normalized not in PDF_EXTRACTION_MODES:
+            allowed = ", ".join(sorted(PDF_EXTRACTION_MODES))
+            msg = f"PDF_EXTRACTION_MODE must be one of: {allowed}"
+            raise ValueError(msg)
+        return normalized
+
+    @field_validator("pdf_max_pages")
+    @classmethod
+    def validate_pdf_max_pages(cls, value: int) -> int:
+        if value < 0:
+            msg = "PDF_MAX_PAGES must be >= 0 (0 = no limit)"
+            raise ValueError(msg)
+        return value
+
+    @field_validator("pdf_ocr_min_chars", "pdf_ocr_dpi")
+    @classmethod
+    def validate_positive_int(cls, value: int) -> int:
+        if value < 1:
+            msg = "PDF OCR settings must be positive integers"
+            raise ValueError(msg)
+        return value
 
     @property
     def extension_list(self) -> list[str]:

@@ -114,6 +114,33 @@ def test_ingest_directory_matches_pdf_extension_case_insensitive(
 
 
 @patch("pipeline.ingestion.pipeline.IngestionPipeline.run_local")
+def test_ingest_directory_continues_on_pdf_validation_failure(
+    mock_run_local: Mock,
+    tmp_path: Path,
+    tmp_output_dir: Path,
+) -> None:
+    source_dir = tmp_path / "pdfs"
+    source_dir.mkdir()
+    good = source_dir / "good.pdf"
+    bad = source_dir / "bad.pdf"
+    good.write_bytes(b"%PDF-1.4\n")
+    bad.write_bytes(b"%PDF-1.4\nbroken")
+
+    mock_run_local.side_effect = [
+        _ingestion_result(str(good.resolve()), tmp_output_dir),
+        ValueError("Unable to read PDF (corrupt or invalid)"),
+    ]
+
+    pipeline = IngestionPipeline(output_dir=tmp_output_dir, uploader=Mock())
+    batch = pipeline.ingest_directory(source_dir, extensions=[".pdf"])
+
+    assert batch.total_files == 2
+    assert batch.succeeded == 1
+    assert batch.failed == 1
+    assert "Unable to read PDF" in batch.errors[0].error
+
+
+@patch("pipeline.ingestion.pipeline.IngestionPipeline.run_local")
 def test_ingest_directory_continues_on_individual_failure(
     mock_run_local: Mock,
     tmp_path: Path,

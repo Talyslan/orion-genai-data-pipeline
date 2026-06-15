@@ -37,6 +37,29 @@ def test_validate_pdf_raises_for_missing_file(tmp_path: Path) -> None:
         validate_pdf(tmp_path / "missing.pdf")
 
 
+def test_validate_pdf_rejects_corrupt_pdf(tmp_path: Path) -> None:
+    corrupt = tmp_path / "corrupt.pdf"
+    corrupt.write_bytes(b"%PDF-1.4\nbroken content")
+
+    with pytest.raises(ValueError, match="Unable to read PDF"):
+        validate_pdf(corrupt)
+
+
+def test_validate_pdf_rejects_password_protected_pdf(tmp_path: Path) -> None:
+    pdf_path = tmp_path / "protected.pdf"
+    document = fitz.open()
+    document.new_page()
+    document.save(
+        pdf_path,
+        encryption=fitz.PDF_ENCRYPT_AES_128,
+        user_pw="secret",
+    )
+    document.close()
+
+    with pytest.raises(ValueError, match="password-protected"):
+        validate_pdf(pdf_path)
+
+
 def test_read_pdf_metadata_returns_page_count_and_fields(sample_pdf: Path) -> None:
     doc = read_pdf_metadata(sample_pdf)
 
