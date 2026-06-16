@@ -266,6 +266,33 @@ docker compose up -d
 | PostgreSQL    | `localhost:5433`      | `orion` / `orion` (db: `orion`) |
 | Qdrant        | http://localhost:6333 | —                               |
 
+### Pipeline em Docker
+
+Execução containerizada sem `uv` no host. O serviço `pipeline` usa o profile `pipeline` (não sobe com `up -d` sozinho).
+
+```bash
+# Build
+docker compose --profile pipeline build pipeline
+
+# Infraestrutura
+docker compose up -d
+
+# Comandos no container
+docker compose --profile pipeline run --rm pipeline help
+docker compose --profile pipeline run --rm pipeline migrate
+docker compose --profile pipeline run --rm pipeline ingest-dir --dir /app/pdfs
+docker compose --profile pipeline run --rm pipeline transform
+```
+
+Fluxo completo: `bash scripts/run-docker-pipeline.sh`
+
+Variáveis internas (hostnames Docker): ver [.env.docker.example](.env.docker.example).
+
+| Contexto | MinIO | PostgreSQL | Qdrant | PDFs |
+| -------- | ----- | ---------- | ------ | ---- |
+| Host (`uv run`) | `localhost:9000` | `localhost:5433` | `localhost:6333` | `./pdfs` |
+| Container | `minio:9000` | `postgres:5432` | `qdrant:6333` | `/app/pdfs` |
+
 ### Transformação (Fase 2)
 
 Após ingerir arquivos no Bronze, execute a transformação:
@@ -366,11 +393,16 @@ orion-genai-data-pipeline/
 ├── tests/
 ├── docs/
 ├── docker/
+│   └── entrypoint.sh
+├── Dockerfile
+├── .dockerignore
+├── .env.docker.example
 ├── scripts/
 │   ├── coleta.sh
 │   ├── download-pdfs.sh
 │   ├── migrate.sh
 │   ├── run-corpus-pdf.sh
+│   ├── run-docker-pipeline.sh
 │   └── verify-ouro.sh
 ├── .env.example
 ├── pyproject.toml
