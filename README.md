@@ -331,7 +331,7 @@ PostgreSQL + Qdrant
 
 Verificação pós-Docker: `bash scripts/verify-ouro.sh`
 
-### Transformação (Fase 2)
+### Transformação
 
 Após ingerir arquivos no Bronze, execute a transformação:
 
