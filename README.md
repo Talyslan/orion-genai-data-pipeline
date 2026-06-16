@@ -121,7 +121,7 @@ Principais variáveis para ingestão local:
 
 Corpus PDF (AWS Whitepapers): coloque os arquivos em `./pdfs/`. Os binários `.pdf` estão no `.gitignore`; o manifesto e o README em `pdfs/` são versionados. Veja [pdfs/README.md](pdfs/README.md) para URLs e instruções de download.
 
-OCR (Tesseract): para PDFs escaneados, instale o Tesseract no SO ou use `uv sync --group ocr` e configure `TESSERACT_CMD` / `TESSDATA_PREFIX` no `.env` (ver task 02 em `specs/terceira-entrega/`).
+OCR (Tesseract): para PDFs escaneados, instale o Tesseract no SO ou use `uv sync --group ocr` e configure `TESSERACT_CMD` / `TESSDATA_PREFIX` no `.env`.
 
 ### Setup inicial (corpus PDF)
 
@@ -156,12 +156,12 @@ uv run python -m pipeline.ingestion.cli download-corpus
 ### Ingestão de arquivos locais
 
 ```bash
-# Texto / Markdown (segunda entrega)
+# Texto / Markdown
 git clone https://github.com/sandeco/prompts
 bash scripts/coleta.sh ./prompts/caminho/para/arquivo.txt
 uv run python -m pipeline.ingestion.cli ingest-dir --dir ./prompts
 
-# PDF (terceira entrega — upload binário para Bronze)
+# PDF (upload binário para Bronze)
 bash scripts/coleta.sh ./pdfs/wellarchitected-framework.pdf
 uv run python -m pipeline.ingestion.cli ingest-file ./pdfs/wellarchitected-framework.pdf
 uv run python -m pipeline.ingestion.cli ingest-dir --dir ./pdfs
@@ -172,7 +172,7 @@ for file in ./pdfs/*.pdf; do
 done
 ```
 
-### Processamento em lote — corpus PDF (6 whitepapers)
+### Processamento em lote — corpus PDF
 
 Ordem recomendada para processar todo o corpus AWS em `./pdfs/`:
 
@@ -256,7 +256,7 @@ A saída inclui `source_format`, `source_path` (PDF em `./pdfs/`) e `minio_objec
 | OOM durante embed | RAM insuficiente | Reduzir `EMBEDDING_BATCH_SIZE` no compose |
 | Model download lento | Sem cache HF | Volume `huggingface_cache` no compose |
 
-### Ingestão por URL (legado — primeira entrega)
+### Ingestão por URL (legado - feito na versão inicial)
 
 ```bash
 uv run python src/main.py
@@ -317,7 +317,7 @@ Variáveis internas (hostnames Docker): ver [.env.docker.example](.env.docker.ex
 | Host (`uv run`) | `localhost:9000` | `localhost:5433` | `localhost:6333` | `./pdfs` |
 | Container | `minio:9000` | `postgres:5432` | `qdrant:6333` | `/app/pdfs` |
 
-Fluxo completo (terceira entrega):
+Fluxo completo:
 
 ```text
 ./pdfs/ (AWS Whitepapers)
@@ -448,13 +448,3 @@ orion-genai-data-pipeline/
 ├── pyproject.toml
 └── docker-compose.yml
 ```
-
-## Documentação
-
-Especificações detalhadas em `specs/`:
-
-- [Setup e ambiente](specs/basis/README.md)
-- [Primeira entrega](specs/primeira-entrega/readme.md)
-- [Segunda entrega](specs/segunda-entrega/readme.md)
-- [Terceira entrega — PDF e Docker](specs/terceira-entrega/readme.md)
-- [Especificação técnica](specs/spec-tech.md)
