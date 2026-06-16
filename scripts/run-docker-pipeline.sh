@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+export MSYS_NO_PATHCONV=1
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
@@ -21,7 +23,7 @@ echo "=== Corpus status ==="
 docker compose --profile "$PROFILE" run --rm pipeline corpus-status
 
 echo "=== Ingest PDFs ==="
-docker compose --profile "$PROFILE" run --rm pipeline ingest-dir --dir /app/pdfs
+docker compose --profile "$PROFILE" run --rm pipeline ingest-dir
 
 echo "=== Transform ==="
 docker compose --profile "$PROFILE" run --rm pipeline transform

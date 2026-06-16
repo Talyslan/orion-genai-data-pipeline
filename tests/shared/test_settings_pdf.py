@@ -4,7 +4,7 @@ from pipeline.shared.config.settings import PDF_EXTRACTION_MODES, Settings
 
 
 def test_pdf_settings_defaults_match_spec() -> None:
-    settings = Settings()
+    settings = Settings(_env_file=None)
 
     assert settings.data_source_dir == "./pdfs"
     assert settings.data_source_extensions == ".txt,.md,.pdf"

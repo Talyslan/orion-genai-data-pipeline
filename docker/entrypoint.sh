@@ -44,8 +44,9 @@ Orion Pipeline — comandos disponíveis:
 
 Exemplos:
   docker compose --profile pipeline run --rm pipeline migrate
-  docker compose --profile pipeline run --rm pipeline ingest-dir --dir /app/pdfs
+  docker compose --profile pipeline run --rm pipeline ingest-dir
   docker compose --profile pipeline run --rm pipeline transform
+  docker compose --profile pipeline run --rm pipeline transform --object-key source/2026/06/16/foo.pdf
 EOF
     ;;
   *)

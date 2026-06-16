@@ -245,6 +245,17 @@ A saída inclui `source_format`, `source_path` (PDF em `./pdfs/`) e `minio_objec
 | OCR lento | Reduzir `PDF_OCR_DPI`; limitar `PDF_MAX_PAGES` em dev |
 | `TesseractNotFoundError` | Instalar Tesseract no SO ou configurar `TESSERACT_CMD` no `.env` |
 
+### Troubleshooting — Docker
+
+| Problema | Causa provável | Solução |
+| -------- | -------------- | ------- |
+| `Source directory not found: .../Git/app/pdfs` | Git Bash converte `/app/pdfs` | Use `ingest-dir` sem `--dir` ou `MSYS_NO_PATHCONV=1` |
+| `Connection refused` MinIO/Postgres/Qdrant | URL `localhost` no container | Hostnames `minio`, `postgres`, `qdrant` no compose |
+| `dependency qdrant failed to start` | Healthcheck com `curl` indisponível | Compose atual usa TCP bash em Qdrant |
+| Build Docker muito lento | PyTorch CUDA no lock | Índice `pytorch-cpu` no `pyproject.toml` |
+| OOM durante embed | RAM insuficiente | Reduzir `EMBEDDING_BATCH_SIZE` no compose |
+| Model download lento | Sem cache HF | Volume `huggingface_cache` no compose |
+
 ### Ingestão por URL (legado — primeira entrega)
 
 ```bash
@@ -265,6 +276,7 @@ docker compose up -d
 | MinIO Console | http://localhost:9001 | `minioadmin` / `minioadmin`     |
 | PostgreSQL    | `localhost:5433`      | `orion` / `orion` (db: `orion`) |
 | Qdrant        | http://localhost:6333 | —                               |
+| pipeline      | — (CLI on-demand)     | profile `pipeline` no compose   |
 
 ### Pipeline em Docker
 
@@ -282,18 +294,42 @@ docker compose up -d
 # Comandos no container
 docker compose --profile pipeline run --rm pipeline help
 docker compose --profile pipeline run --rm pipeline migrate
-docker compose --profile pipeline run --rm pipeline ingest-dir --dir /app/pdfs
+docker compose --profile pipeline run --rm pipeline ingest-dir
 docker compose --profile pipeline run --rm pipeline transform
 ```
 
 Fluxo completo: `bash scripts/run-docker-pipeline.sh`
 
+Teste de integração (sem transform lenta): `SKIP_TRANSFORM=1 bash scripts/test-docker.sh`
+
+Teste com 1 PDF + trace + idempotência: `SKIP_BUILD=1 SKIP_INGEST=1 bash scripts/test-docker.sh`
+
+Lote Bronze completo: `TRANSFORM_ALL=1 bash scripts/test-docker.sh`
+
 Variáveis internas (hostnames Docker): ver [.env.docker.example](.env.docker.example).
+
+**Windows (Git Bash):** os scripts definem `MSYS_NO_PATHCONV=1` para evitar que `/app/pdfs` vire `C:/Program Files/Git/app/pdfs`. Use `ingest-dir` sem `--dir` (default: `DATA_SOURCE_DIR=/app/pdfs` no compose).
+
+**Build:** PyTorch CPU-only via índice `pytorch-cpu` no `pyproject.toml` (~6 min no 1º build; sem pacotes CUDA).
 
 | Contexto | MinIO | PostgreSQL | Qdrant | PDFs |
 | -------- | ----- | ---------- | ------ | ---- |
 | Host (`uv run`) | `localhost:9000` | `localhost:5433` | `localhost:6333` | `./pdfs` |
 | Container | `minio:9000` | `postgres:5432` | `qdrant:6333` | `/app/pdfs` |
+
+Fluxo completo (terceira entrega):
+
+```text
+./pdfs/ (AWS Whitepapers)
+    ↓ docker compose --profile pipeline run --rm pipeline ingest-dir
+MinIO Bronze (.pdf)
+    ↓ docker compose --profile pipeline run --rm pipeline transform
+Extração → Chunking → BGE-M3
+    ↓
+PostgreSQL + Qdrant
+```
+
+Verificação pós-Docker: `bash scripts/verify-ouro.sh`
 
 ### Transformação (Fase 2)
 
@@ -405,6 +441,8 @@ orion-genai-data-pipeline/
 │   ├── migrate.sh
 │   ├── run-corpus-pdf.sh
 │   ├── run-docker-pipeline.sh
+│   ├── test-docker.sh
+│   ├── verify-docker-prereqs.sh
 │   └── verify-ouro.sh
 ├── .env.example
 ├── pyproject.toml
@@ -418,4 +456,5 @@ Especificações detalhadas em `specs/`:
 - [Setup e ambiente](specs/basis/README.md)
 - [Primeira entrega](specs/primeira-entrega/readme.md)
 - [Segunda entrega](specs/segunda-entrega/readme.md)
+- [Terceira entrega — PDF e Docker](specs/terceira-entrega/readme.md)
 - [Especificação técnica](specs/spec-tech.md)
