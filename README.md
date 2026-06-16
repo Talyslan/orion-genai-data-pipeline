@@ -270,6 +270,8 @@ docker compose up -d
 
 Execução containerizada sem `uv` no host. O serviço `pipeline` usa o profile `pipeline` (não sobe com `up -d` sozinho).
 
+Antes do build, verifique pré-requisitos: `bash scripts/verify-docker-prereqs.sh`
+
 ```bash
 # Build
 docker compose --profile pipeline build pipeline
