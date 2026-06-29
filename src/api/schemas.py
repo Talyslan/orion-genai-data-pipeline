@@ -48,3 +48,22 @@ class SiteBatchAcceptedResponse(BaseModel):
     message: str
     jobs: list[SiteJobAcceptedItem]
     total: int
+
+
+class JobListFilters(BaseModel):
+    type: Literal["pdf", "site"] | None = None
+    status: Literal["pending", "running", "completed", "skipped", "failed"] | None = (
+        None
+    )
+    limit: int = 20
+
+
+class JobListResponse(BaseModel):
+    jobs: list[dict[str, Any]]
+    total: int
+    filters: JobListFilters
+
+
+class JobNotFoundResponse(BaseModel):
+    status: Literal["not_found"] = "not_found"
+    message: str = "Job não encontrado ou expirado (TTL)."
