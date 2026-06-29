@@ -1,0 +1,22 @@
+ARG PYTHON_VERSION=3.13
+FROM python:${PYTHON_VERSION}-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+COPY pyproject.toml uv.lock README.md ./
+RUN uv sync --frozen --no-dev --no-group ocr
+
+COPY src/geracao ./src/geracao
+
+ENV PYTHONPATH=/app/src
+ENV PATH="/app/.venv/bin:${PATH}"
+ENV PIPELINE_API_URL=http://pipeline-api:8000/api
+
+ENTRYPOINT ["orion-geracao"]
+CMD ["run", "--help"]

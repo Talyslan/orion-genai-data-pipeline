@@ -23,6 +23,10 @@ case "$CMD" in
   transform)
     exec python -m pipeline.transform.cli run "$@"
     ;;
+  serve)
+    python -m pipeline.transform.cli migrate
+    exec uvicorn api.app:app --host 0.0.0.0 --port 8000 "$@"
+    ;;
   trace)
     exec python -m pipeline.transform.cli trace "$@"
     ;;
@@ -39,6 +43,7 @@ Orion Pipeline — comandos disponíveis:
   ingest-file <path>   Ingerir um arquivo
   ingest-dir [--dir]   Ingerir diretório (default: DATA_SOURCE_DIR)
   transform            Transformar objetos Bronze → Ouro
+  serve                Subir API HTTP (migrate + uvicorn :8000)
   trace <chunk-id>     Rastreabilidade
   shell                Bash interativo
 
@@ -47,6 +52,7 @@ Exemplos:
   docker compose --profile pipeline run --rm pipeline ingest-dir
   docker compose --profile pipeline run --rm pipeline transform
   docker compose --profile pipeline run --rm pipeline transform --object-key source/2026/06/16/foo.pdf
+  docker compose up -d pipeline-api
 EOF
     ;;
   *)

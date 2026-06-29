@@ -17,6 +17,7 @@ RUN uv sync --frozen --no-dev --group ocr
 
 COPY src/ ./src/
 COPY scripts/ ./scripts/
+COPY sites/ ./sites/
 
 ENV PYTHONPATH=/app/src
 ENV PATH="/app/.venv/bin:${PATH}"

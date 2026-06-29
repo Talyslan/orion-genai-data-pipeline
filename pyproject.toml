@@ -11,6 +11,7 @@ requires-python = ">=3.13"
 dependencies = [
     "beautifulsoup4>=4.14.3",
     "fastapi>=0.115.0",
+    "httpx>=0.28.0",
     "html2text>=2024.2.26",
     "lxml>=6.1.1",
     "minio>=7.2.20",
@@ -31,9 +32,10 @@ dependencies = [
 [project.scripts]
 orion-ingest = "pipeline.ingestion.cli:main"
 orion-transform = "pipeline.transform.cli:main"
+orion-geracao = "geracao.cli:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/pipeline", "src/api"]
+packages = ["src/pipeline", "src/api", "src/geracao"]
 
 [[tool.uv.index]]
 name = "pytorch-cpu"
