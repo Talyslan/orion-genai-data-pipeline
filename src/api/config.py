@@ -18,6 +18,7 @@ class ApiSettings(BaseSettings):
     pdf_max_upload_bytes: int = 80 * 1024 * 1024
     site_manifest_path: str = "./sites/manifest.yaml"
     allowed_site_domains: str = "docs.aws.amazon.com,aws.amazon.com"
+    job_ttl_seconds: int = 86400
 
     @field_validator("allowed_site_domains")
     @classmethod
