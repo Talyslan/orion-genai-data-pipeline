@@ -1,0 +1,16 @@
+# Sites AWS complementares ao corpus PDF — catálogo para GET /api/site/help
+# Uso: entradas extras além das doc_page de pdfs/manifest.yaml
+corpus: aws-well-architected-sites
+updated: 2026-06-28
+sites:
+  - id: aws-overview
+    title: AWS Overview
+    url: https://docs.aws.amazon.com/whitepapers/latest/aws-overview/aws-overview.html
+    related_pdf: architecting-for-the-cloud
+    optional: false
+
+  - id: lambda-serverless-page
+    title: Serverless Architectures — documentation page
+    url: https://docs.aws.amazon.com/whitepapers/latest/serverless-architectures-lambda/welcome.html
+    related_pdf: serverless-architectures-lambda
+    optional: true

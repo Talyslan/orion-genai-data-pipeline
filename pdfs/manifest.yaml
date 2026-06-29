@@ -1,51 +1,59 @@
 # Corpus AWS Well-Architected — URLs diretas validadas em 2026-06-15
+# SHA-256 dos obrigatórios validados em 2026-06-28 (URLs oficiais AWS)
 # Uso: uv run python -m pipeline.ingestion.cli corpus-status
 # Download automático: task 14 (download-corpus)
 corpus: aws-well-architected
 theme: performance-frontend-web-architecture
-updated: 2026-06-15
+updated: 2026-06-28
 documents:
   - id: wellarchitected-framework
     title: AWS Well-Architected Framework
     url: https://docs.aws.amazon.com/pdfs/wellarchitected/latest/framework/wellarchitected-framework.pdf
     filename: wellarchitected-framework.pdf
     doc_page: https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html
+    sha256: "423a9008cee433b6159e35ddfabe2c7082cba81fbba72c19b992d123c4803817"
 
   - id: performance-efficiency-pillar
     title: Performance Efficiency Pillar
     url: https://docs.aws.amazon.com/pdfs/wellarchitected/latest/performance-efficiency-pillar/wellarchitected-performance-efficiency-pillar.pdf
     filename: wellarchitected-performance-efficiency-pillar.pdf
     doc_page: https://docs.aws.amazon.com/wellarchitected/latest/performance-efficiency-pillar/welcome.html
+    sha256: "3580e39dbcbb100beeba51e034efc5526dbf4501d886aa2e92f26b642aae7450"
 
   - id: reliability-pillar
     title: Reliability Pillar
     url: https://docs.aws.amazon.com/pdfs/wellarchitected/latest/reliability-pillar/wellarchitected-reliability-pillar.pdf
     filename: wellarchitected-reliability-pillar.pdf
     doc_page: https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/welcome.html
+    sha256: "0fb97ade410ed46f108ee7d862eeb692922037abd7bdae46f1d2e6a5f0588424"
 
   - id: security-pillar
     title: Security Pillar
     url: https://docs.aws.amazon.com/pdfs/wellarchitected/latest/security-pillar/wellarchitected-security-pillar.pdf
     filename: wellarchitected-security-pillar.pdf
     doc_page: https://docs.aws.amazon.com/wellarchitected/latest/security-pillar/welcome.html
+    sha256: "dddd949428d3ed082ac78091129d53b4a999a44ce41e0dd78042ebcbc9447104"
 
   - id: sustainability-pillar
     title: Sustainability Pillar
     url: https://docs.aws.amazon.com/pdfs/wellarchitected/latest/sustainability-pillar/wellarchitected-sustainability-pillar.pdf
     filename: wellarchitected-sustainability-pillar.pdf
     doc_page: https://docs.aws.amazon.com/wellarchitected/latest/sustainability-pillar/welcome.html
+    sha256: "8327d6832582f2c30ae37edde69682b7b0a499a6423d2b017064884a80d8c18f"
 
   - id: microservices-on-aws
     title: Microservices on AWS
     url: https://docs.aws.amazon.com/pdfs/whitepapers/latest/microservices-on-aws/microservices-on-aws.pdf
     filename: microservices-on-aws.pdf
     doc_page: https://docs.aws.amazon.com/whitepapers/latest/microservices-on-aws/microservices-on-aws.html
+    sha256: "e7cbdf037ec91070258c4e5a8fa41389a329166e75921499cf71a3bda5d31eef"
 
   - id: serverless-architectures-lambda
     title: Serverless Architectures with AWS Lambda
     url: https://docs.aws.amazon.com/pdfs/whitepapers/latest/serverless-architectures-lambda/serverless-architectures-lambda.pdf
     filename: serverless-architectures-lambda.pdf
     doc_page: https://docs.aws.amazon.com/whitepapers/latest/serverless-architectures-lambda/welcome.html
+    sha256: "4b3ab2985db908c58ae7fe39978ff6807ad590ef66bb213a5e3ea3838d31b1cc"
     optional: true
 
   - id: architecting-for-the-cloud
