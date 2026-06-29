@@ -2,7 +2,7 @@
 
 from fastapi import FastAPI
 
-from api.routes import health, pdf
+from api.routes import health, pdf, site
 
 app = FastAPI(
     title="Orion Pipeline API",
@@ -15,3 +15,4 @@ app = FastAPI(
 
 app.include_router(health.router, prefix="/api")
 app.include_router(pdf.router, prefix="/api")
+app.include_router(site.router, prefix="/api")

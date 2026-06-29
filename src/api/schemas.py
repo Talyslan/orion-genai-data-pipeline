@@ -33,3 +33,18 @@ class RejectedResponse(BaseModel):
     error: str
     message: str
     help: dict[str, Any] = Field(default_factory=dict)
+
+
+class SiteJobAcceptedItem(BaseModel):
+    job_id: str
+    type: Literal["site"] = "site"
+    poll: str
+    input: dict[str, Any] = Field(default_factory=dict)
+
+
+class SiteBatchAcceptedResponse(BaseModel):
+    status: Literal["accepted"] = "accepted"
+    enqueued: Literal[True] = True
+    message: str
+    jobs: list[SiteJobAcceptedItem]
+    total: int
