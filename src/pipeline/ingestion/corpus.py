@@ -19,6 +19,7 @@ class CorpusDocument:
     doc_page: str | None = None
     optional: bool = False
     notes: str | None = None
+    sha256: str | None = None
 
 
 @dataclass(frozen=True)
@@ -62,6 +63,13 @@ class CorpusStatus:
         return len(self.missing_required) == 0
 
 
+def _normalize_sha256(value: object) -> str | None:
+    if not value:
+        return None
+    normalized = str(value).strip().lower()
+    return normalized or None
+
+
 def load_manifest(manifest_path: Path) -> tuple[CorpusDocument, ...]:
     """Load corpus documents from manifest YAML."""
     resolved = manifest_path.resolve()
@@ -103,6 +111,7 @@ def load_manifest(manifest_path: Path) -> tuple[CorpusDocument, ...]:
                 doc_page=entry.get("doc_page"),
                 optional=bool(entry.get("optional", False)),
                 notes=entry.get("notes"),
+                sha256=_normalize_sha256(entry.get("sha256")),
             )
         )
 

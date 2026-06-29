@@ -30,7 +30,7 @@ orion-ingest = "pipeline.ingestion.cli:main"
 orion-transform = "pipeline.transform.cli:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/pipeline"]
+packages = ["src/pipeline", "src/api"]
 
 [[tool.uv.index]]
 name = "pytorch-cpu"
