@@ -10,8 +10,9 @@ from pathlib import Path
 
 import fitz
 
+from api.catalog import build_pdf_help_documents
 from api.config import api_settings
-from pipeline.ingestion.corpus import CorpusDocument, check_corpus, load_manifest
+from pipeline.ingestion.corpus import CorpusDocument, load_manifest
 from pipeline.ingestion.corpus_download import file_sha256, validate_pdf_bytes
 from pipeline.shared.config.settings import settings
 
@@ -325,35 +326,10 @@ def build_pdf_help_response(
     corpus_dir: Path | str | None = None,
 ) -> dict:
     """Build the GET /api/pdf/help payload."""
-    resolved_manifest = Path(manifest_path or settings.pdf_manifest_path).resolve()
-    resolved_dir = Path(corpus_dir or settings.pdf_download_dir).resolve()
-    status = check_corpus(resolved_manifest, resolved_dir)
-
-    available_by_id = {item.document.id: item.valid_pdf for item in status.files}
-
-    documents = []
-    for document in status.documents:
-        if document.optional and not api_settings.allow_optional_corpus:
-            continue
-        documents.append(
-            {
-                "id": document.id,
-                "title": document.title,
-                "filename": document.filename,
-                "required": not document.optional,
-                "available": available_by_id.get(document.id, False),
-                "source_url": document.url,
-                "doc_page": document.doc_page,
-                "how_to_obtain": (
-                    "Baixe o PDF em source_url e envie com o filename exato."
-                    if document.url
-                    else (
-                        document.notes
-                        or "Baixe manualmente e envie com o filename exato."
-                    )
-                ),
-            }
-        )
+    documents = build_pdf_help_documents(
+        manifest_path=manifest_path,
+        corpus_dir=corpus_dir,
+    )
 
     return {
         "policy": "aws-well-architected-only",
